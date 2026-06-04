@@ -1,5 +1,33 @@
-<div class="py-8 bg-slate-50 min-h-screen">
+<div class="py-8 bg-slate-50 min-h-screen relative">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
+
+        @if(isset($periode) && $periode)
+            @if($isPeriodeAktif)
+                <div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-xl shadow-sm flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <svg class="h-6 w-6 text-emerald-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                        <div>
+                            <h3 class="text-sm font-bold text-emerald-800">PORTAL PELAPORAN DIBUKA</h3>
+                            <p class="text-xs text-emerald-600 font-medium">Batas Waktu: {{ \Carbon\Carbon::parse($periode->tanggal_buka)->format('d M Y') }} s/d {{ \Carbon\Carbon::parse($periode->tanggal_tutup)->format('d M Y') }}</p>
+                        </div>
+                    </div>
+                </div>
+            @else
+                <div class="bg-rose-50 border-l-4 border-rose-500 p-4 rounded-xl shadow-sm flex items-center justify-between">
+                    <div class="flex items-center gap-3">
+                        <svg class="h-6 w-6 text-rose-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                        </svg>
+                        <div>
+                            <h3 class="text-sm font-bold text-rose-800">PORTAL PELAPORAN DITUTUP</h3>
+                            <p class="text-xs text-rose-600 font-medium">Staf tidak dapat membuat laporan baru di luar batas waktu.</p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        @endif
 
         <div class="relative bg-gradient-to-r from-slate-900 via-slate-800 to-indigo-900 rounded-2xl shadow-2xl overflow-hidden border border-slate-700">
             <div class="absolute inset-0 opacity-20">
@@ -16,7 +44,7 @@
                     <h3 class="text-3xl font-bold text-white tracking-tight">Siap Bertugas, {{ Auth::user()->name }}!</h3>
                     <p class="text-slate-300 max-w-xl text-base leading-relaxed">
                         @if(Auth::user()->role === 'admin')
-                        Anda memiliki <span class="text-yellow-400 font-bold">{{ $totalPending }}</span> item yang menunggu verifikasi.
+                        Anda memiliki <span class="text-yellow-400 font-bold">{{ $totalPending ?? 0 }}</span> item yang menunggu verifikasi.
                         @else
                         Selamat bekerja. Pastikan data yang diinput akurat dan terkini.
                         @endif
@@ -24,6 +52,15 @@
                 </div>
 
                 <div class="flex gap-3">
+                    @if(Auth::user()->role === 'admin')
+                    <button wire:click="aturPeriode" class="bg-yellow-500 hover:bg-yellow-400 text-yellow-900 font-bold py-2.5 px-5 rounded-lg transition flex items-center gap-2 shadow-lg">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                        </svg>
+                        Atur Periode
+                    </button>
+                    @endif
+                    
                     <a href="{{ route('lapinhar.index') }}" wire:navigate class="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-medium py-2.5 px-5 rounded-lg transition backdrop-blur-sm flex items-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -34,12 +71,38 @@
             </div>
         </div>
 
+        @if(isset($lapinharAktif) && $lapinharAktif->count() > 0)
+        <div class="bg-cyan-50 border-l-4 border-cyan-500 p-5 rounded-xl shadow-sm flex items-start gap-4">
+            <div class="flex-shrink-0 mt-0.5">
+                <svg class="h-6 w-6 text-cyan-600 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <div class="flex-1">
+                <h3 class="text-sm font-bold text-cyan-800 uppercase tracking-wide">
+                    Monitoring: Ada {{ $lapinharAktif->count() }} Berkas Lapinhar Sedang Diproses
+                </h3>
+                <div class="mt-2 text-sm text-cyan-700">
+                    <ul class="list-disc pl-5 space-y-1.5 font-medium">
+                        @foreach($lapinharAktif as $berkas)
+                        <li>
+                            <strong>{{ $berkas->nomor_surat }}</strong> 
+                            <span class="text-cyan-600">({{ Str::limit($berkas->peristiwa, 50) }})</span>
+                            <span class="inline-block text-xs font-bold bg-cyan-200 text-cyan-800 px-2 py-0.5 rounded ml-2">Dibuka: {{ \Carbon\Carbon::parse($berkas->tanggal_dibuka)->format('d/m/Y') }}</span>
+                        </li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+        </div>
+        @endif
+
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100 border-b-4 border-b-blue-500 hover:shadow-lg transition-all duration-300 group">
                 <div class="flex justify-between items-start mb-4">
                     <div>
                         <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Total Lapinhar</p>
-                        <h4 class="text-3xl font-extrabold text-slate-800 mt-1 group-hover:text-blue-600 transition-colors">{{ $totalLapinhar }}</h4>
+                        <h4 class="text-3xl font-extrabold text-slate-800 mt-1 group-hover:text-blue-600 transition-colors">{{ $totalLapinhar ?? 0 }}</h4>
                     </div>
                     <div class="p-3 bg-blue-50 rounded-lg text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -56,7 +119,7 @@
                 <div class="flex justify-between items-start mb-4">
                     <div>
                         <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Buronan (DPO)</p>
-                        <h4 class="text-3xl font-extrabold text-slate-800 mt-1 group-hover:text-red-600 transition-colors">{{ $totalDpo }}</h4>
+                        <h4 class="text-3xl font-extrabold text-slate-800 mt-1 group-hover:text-red-600 transition-colors">{{ $totalDpo ?? 0 }}</h4>
                     </div>
                     <div class="p-3 bg-red-50 rounded-lg text-red-600 group-hover:bg-red-600 group-hover:text-white transition-colors">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,7 +136,7 @@
                 <div class="flex justify-between items-start mb-4">
                     <div>
                         <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Ormas Aktif</p>
-                        <h4 class="text-3xl font-extrabold text-slate-800 mt-1 group-hover:text-indigo-600 transition-colors">{{ $totalOrmas }}</h4>
+                        <h4 class="text-3xl font-extrabold text-slate-800 mt-1 group-hover:text-indigo-600 transition-colors">{{ $totalOrmas ?? 0 }}</h4>
                     </div>
                     <div class="p-3 bg-indigo-50 rounded-lg text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-colors">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -90,7 +153,7 @@
                 <div class="flex justify-between items-start mb-4">
                     <div>
                         <p class="text-xs font-bold text-slate-400 uppercase tracking-wider">Pengawasan WNA</p>
-                        <h4 class="text-3xl font-extrabold text-slate-800 mt-1 group-hover:text-teal-600 transition-colors">{{ $totalWna }}</h4>
+                        <h4 class="text-3xl font-extrabold text-slate-800 mt-1 group-hover:text-teal-600 transition-colors">{{ $totalWna ?? 0 }}</h4>
                     </div>
                     <div class="p-3 bg-teal-50 rounded-lg text-teal-600 group-hover:bg-teal-600 group-hover:text-white transition-colors">
                         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -127,34 +190,36 @@
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-slate-100">
-                            @forelse($latestLapinhar as $item)
-                            <tr class="hover:bg-slate-50 transition">
-                                <td class="px-6 py-4 font-medium text-slate-900">
-                                    {{ \Carbon\Carbon::parse($item->tanggal_surat)->format('d/m/Y') }}
-                                </td>
-                                <td class="px-6 py-4">
-                                    {{ Str::limit($item->peristiwa, 40) }}
-                                </td>
-                                <td class="px-6 py-4">
-                                    <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-800">
-                                        {{ $item->bidang }}
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 text-center">
-                                    @if($item->status_verifikasi == 'disetujui')
-                                    <span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded border border-green-200">OK</span>
-                                    @elseif($item->status_verifikasi == 'ditolak')
-                                    <span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded border border-red-200">TOLAK</span>
-                                    @else
-                                    <span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-0.5 rounded border border-yellow-200">PENDING</span>
-                                    @endif
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="4" class="px-6 py-8 text-center text-slate-400 italic">Belum ada data Lapinhar.</td>
-                            </tr>
-                            @endforelse
+                            @if(isset($latestLapinhar) && count($latestLapinhar) > 0)
+                                @foreach($latestLapinhar as $item)
+                                <tr class="hover:bg-slate-50 transition">
+                                    <td class="px-6 py-4 font-medium text-slate-900">
+                                        {{ \Carbon\Carbon::parse($item->tanggal_surat)->format('d/m/Y') }}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        {{ Str::limit($item->peristiwa, 40) }}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <span class="inline-flex items-center px-2 py-0.5 rounded text-[10px] font-medium bg-blue-100 text-blue-800">
+                                            {{ $item->bidang }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-center">
+                                        @if($item->status_verifikasi == 'disetujui')
+                                        <span class="bg-green-100 text-green-800 text-[10px] font-bold px-2 py-0.5 rounded border border-green-200">OK</span>
+                                        @elseif($item->status_verifikasi == 'ditolak')
+                                        <span class="bg-red-100 text-red-800 text-[10px] font-bold px-2 py-0.5 rounded border border-red-200">TOLAK</span>
+                                        @else
+                                        <span class="bg-yellow-100 text-yellow-800 text-[10px] font-bold px-2 py-0.5 rounded border border-yellow-200">PENDING</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforeach
+                            @else
+                                <tr>
+                                    <td colspan="4" class="px-6 py-8 text-center text-slate-400 italic">Belum ada data Lapinhar.</td>
+                                </tr>
+                            @endif
                         </tbody>
                     </table>
                 </div>
@@ -170,44 +235,44 @@
                     </h3>
                 </div>
                 <div class="p-6">
-                    @if($totalPending > 0)
+                    @if(isset($totalPending) && $totalPending > 0)
                     <div class="space-y-4">
-                        @if($pending['lapinhar'] > 0)
+                        @if(isset($pending['lapinhar']) && $pending['lapinhar'] > 0)
                         <a href="{{ route('lapinhar.index') }}" wire:navigate class="flex items-center justify-between p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition group">
                             <span class="text-sm font-medium text-blue-700">Lapinhar</span>
                             <span class="bg-white text-blue-600 text-xs font-bold px-2 py-1 rounded shadow-sm group-hover:scale-110 transition">{{ $pending['lapinhar'] }}</span>
                         </a>
                         @endif
 
-                        @if($pending['dpo'] > 0)
+                        @if(isset($pending['dpo']) && $pending['dpo'] > 0)
                         <a href="{{ route('dpo.index') }}" wire:navigate class="flex items-center justify-between p-3 bg-red-50 rounded-lg hover:bg-red-100 transition group">
                             <span class="text-sm font-medium text-red-700">Data DPO</span>
                             <span class="bg-white text-red-600 text-xs font-bold px-2 py-1 rounded shadow-sm group-hover:scale-110 transition">{{ $pending['dpo'] }}</span>
                         </a>
                         @endif
 
-                        @if($pending['ormas'] > 0)
+                        @if(isset($pending['ormas']) && $pending['ormas'] > 0)
                         <a href="{{ route('ormas.index') }}" wire:navigate class="flex items-center justify-between p-3 bg-indigo-50 rounded-lg hover:bg-indigo-100 transition group">
                             <span class="text-sm font-medium text-indigo-700">Data Ormas</span>
                             <span class="bg-white text-indigo-600 text-xs font-bold px-2 py-1 rounded shadow-sm group-hover:scale-110 transition">{{ $pending['ormas'] }}</span>
                         </a>
                         @endif
 
-                        @if($pending['wna'] > 0)
+                        @if(isset($pending['wna']) && $pending['wna'] > 0)
                         <a href="{{ route('wna.index') }}" wire:navigate class="flex items-center justify-between p-3 bg-teal-50 rounded-lg hover:bg-teal-100 transition group">
                             <span class="text-sm font-medium text-teal-700">Data WNA</span>
                             <span class="bg-white text-teal-600 text-xs font-bold px-2 py-1 rounded shadow-sm group-hover:scale-110 transition">{{ $pending['wna'] }}</span>
                         </a>
                         @endif
 
-                        @if($pending['jms'] > 0)
+                        @if(isset($pending['jms']) && $pending['jms'] > 0)
                         <a href="{{ route('jms.index') }}" wire:navigate class="flex items-center justify-between p-3 bg-purple-50 rounded-lg hover:bg-purple-100 transition group">
                             <span class="text-sm font-medium text-purple-700">Giat JMS</span>
                             <span class="bg-white text-purple-600 text-xs font-bold px-2 py-1 rounded shadow-sm group-hover:scale-110 transition">{{ $pending['jms'] }}</span>
                         </a>
                         @endif
 
-                        @if($pending['pam'] > 0)
+                        @if(isset($pending['pam']) && $pending['pam'] > 0)
                         <a href="{{ route('pam-sdo.index') }}" wire:navigate class="flex items-center justify-between p-3 bg-gray-100 rounded-lg hover:bg-gray-200 transition group">
                             <span class="text-sm font-medium text-gray-700">PAM SDO</span>
                             <span class="bg-white text-gray-600 text-xs font-bold px-2 py-1 rounded shadow-sm group-hover:scale-110 transition">{{ $pending['pam'] }}</span>
@@ -229,4 +294,35 @@
         </div>
 
     </div>
+
+    @if(isset($showPeriodeModal) && $showPeriodeModal)
+    <div class="fixed z-[100] inset-0 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" wire:click="$set('showPeriodeModal', false)"></div>
+            <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200">
+                <div class="bg-yellow-50 px-6 py-4 border-b border-yellow-100 flex justify-between items-center">
+                    <h3 class="text-lg font-black text-yellow-800 uppercase tracking-tight">Atur Waktu Pelaporan</h3>
+                    <button wire:click="$set('showPeriodeModal', false)" class="text-yellow-500 hover:text-yellow-700">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                <div class="p-6 space-y-4">
+                    <p class="text-xs text-slate-500 mb-4">Jika waktu saat ini berada di luar tanggal yang Anda tentukan, staf tidak akan bisa membuat dokumen/laporan baru.</p>
+                    <div>
+                        <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Tanggal Dibuka</label>
+                        <input type="date" wire:model="tanggal_buka" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-yellow-500 px-4 py-2.5">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Tanggal Ditutup</label>
+                        <input type="date" wire:model="tanggal_tutup" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-yellow-500 px-4 py-2.5">
+                    </div>
+                </div>
+                <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+                    <button wire:click="$set('showPeriodeModal', false)" class="px-5 py-2 text-sm font-bold text-slate-500 hover:text-slate-700">Batal</button>
+                    <button wire:click="simpanPeriode" class="px-6 py-2 bg-yellow-500 hover:bg-yellow-400 text-yellow-900 text-sm font-black rounded-xl shadow-lg transition-all">Simpan Aturan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>

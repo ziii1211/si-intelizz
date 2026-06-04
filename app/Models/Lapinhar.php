@@ -17,6 +17,8 @@ class Lapinhar extends Model
         'pendapat',
         'status',
         'status_verifikasi',
+        'tanggal_dibuka',
+        'tanggal_ditutup',
     ];
 
     protected $casts = [

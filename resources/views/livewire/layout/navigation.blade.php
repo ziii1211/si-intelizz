@@ -17,6 +17,10 @@ new class extends Component {
         $isAdmin = auth()->user()->role === 'admin';
 
         return [
+            // Notifikasi Peringatan Batas Waktu (Dummy data sementara)
+            // Nanti bisa diganti dengan query real, misal: Lapinhar::where('batas_waktu', '<=', now()->addDays(3))->count();
+            'notif_deadline' => 3, 
+
             // Menu yang sudah pasti ada tabelnya
             'notif_lapinhar' => $isAdmin ? Lapinhar::where('status_verifikasi', 'pending')->count() : 0,
             'notif_wna'      => $isAdmin ? Wna::where('status_verifikasi', 'pending')->count() : 0,
@@ -62,7 +66,7 @@ new class extends Component {
         @scroll.debounce.100ms="sessionStorage.setItem('sidebar-scroll', $el.scrollTop)"
         class="flex-1 overflow-y-auto py-4 px-4 custom-scrollbar space-y-8">
 
-        <div>
+        <div class="space-y-2">
             <a href="{{ route('dashboard') }}" wire:navigate
                 class="flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all duration-200 group relative overflow-hidden
                {{ request()->routeIs('dashboard') 

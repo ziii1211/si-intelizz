@@ -13,13 +13,13 @@ class LapinharIndex extends Component
 {
     use WithPagination;
 
-    // --- PROPERTI UTAMA (Wajib Public agar terbaca di View) ---
-    public $showModal = false; // Ini variabel yang bikin error tadi
+    public $showModal = false; 
+    public $showWaktuModal = false; // Modal baru untuk atur waktu
     public $is_edit = false;
     public $search = '';
     public $lapinhar_id;
 
-    // Data Form
+    // Data Form Utama
     public $nomor_surat;
     public $tanggal_surat;
     public $sumber_informasi;
@@ -29,7 +29,10 @@ class LapinharIndex extends Component
     public $status = 'rahasia';
     public $status_verifikasi = 'pending';
 
-    // Reset halaman saat searching
+    // Data Form Waktu (Khusus Admin)
+    public $tanggal_dibuka;
+    public $tanggal_ditutup;
+
     public function updatedSearch()
     {
         $this->resetPage();
@@ -45,7 +48,6 @@ class LapinharIndex extends Component
             'peristiwa' => 'required|string|min:10',
             'pendapat' => 'required|string|min:5',
             'status' => 'required|in:rahasia,biasa',
-            'status_verifikasi' => 'required|in:pending,disetujui,ditolak',
         ];
     }
 
@@ -61,7 +63,6 @@ class LapinharIndex extends Component
             });
         }
 
-        // Urutkan dari yang terbaru
         $lapinhars = $query->latest()->paginate(10);
 
         return view('livewire.lapinhar.lapinhar-index', [
@@ -74,7 +75,7 @@ class LapinharIndex extends Component
         $this->resetInput();
         $this->tanggal_surat = date('Y-m-d');
         $this->is_edit = false;
-        $this->showModal = true; // Buka Modal
+        $this->showModal = true;
     }
 
     public function edit($id)
@@ -83,7 +84,6 @@ class LapinharIndex extends Component
 
         $this->lapinhar_id = $id;
         $this->nomor_surat = $data->nomor_surat;
-        // Pastikan format tanggal string untuk input date HTML
         $this->tanggal_surat = \Carbon\Carbon::parse($data->tanggal_surat)->format('Y-m-d');
         $this->sumber_informasi = $data->sumber_informasi;
         $this->bidang = $data->bidang;
@@ -93,7 +93,7 @@ class LapinharIndex extends Component
         $this->status_verifikasi = $data->status_verifikasi;
 
         $this->is_edit = true;
-        $this->showModal = true; // Buka Modal
+        $this->showModal = true;
     }
 
     public function store()
@@ -110,7 +110,6 @@ class LapinharIndex extends Component
             'status' => $this->status,
         ];
 
-        // Logika Verifikasi: Hanya Admin yang bisa ubah status lewat form ini
         if (Auth::user()->role === 'admin') {
             $dataToSave['status_verifikasi'] = $this->status_verifikasi;
         }
@@ -118,54 +117,70 @@ class LapinharIndex extends Component
         if ($this->is_edit) {
             $lapinhar = Lapinhar::findOrFail($this->lapinhar_id);
             $lapinhar->update($dataToSave);
-
-            // Log Aktivitas (Opsional jika sudah ada Model User::logActivity)
-            // \App\Models\User::logActivity('UPDATE LAPINHAR', 'Nomor: ' . $this->nomor_surat);
-
             session()->flash('message', 'Laporan berhasil diperbarui.');
         } else {
             $dataToSave['user_id'] = Auth::id();
-            $dataToSave['status_verifikasi'] = 'pending'; // Default baru selalu pending
-
+            $dataToSave['status_verifikasi'] = 'pending';
             Lapinhar::create($dataToSave);
-
-            // \App\Models\User::logActivity('CREATE LAPINHAR', 'Nomor: ' . $this->nomor_surat);
-
             session()->flash('message', 'Laporan berhasil dibuat.');
         }
 
-        $this->showModal = false; // Tutup Modal
+        $this->showModal = false;
         $this->resetInput();
+    }
+
+    // --- FUNGSI BUKA MODAL ATUR WAKTU ---
+    public function aturWaktu($id)
+    {
+        if (Auth::user()->role !== 'admin') return;
+
+        $data = Lapinhar::findOrFail($id);
+        $this->lapinhar_id = $id;
+        $this->tanggal_dibuka = $data->tanggal_dibuka ? \Carbon\Carbon::parse($data->tanggal_dibuka)->format('Y-m-d') : null;
+        $this->tanggal_ditutup = $data->tanggal_ditutup ? \Carbon\Carbon::parse($data->tanggal_ditutup)->format('Y-m-d') : null;
+        
+        $this->showWaktuModal = true;
+    }
+
+    // --- FUNGSI SIMPAN WAKTU ---
+    public function saveWaktu()
+    {
+        if (Auth::user()->role !== 'admin') return;
+
+        $lapinhar = Lapinhar::findOrFail($this->lapinhar_id);
+        $lapinhar->update([
+            'tanggal_dibuka' => $this->tanggal_dibuka ?: null,
+            'tanggal_ditutup' => $this->tanggal_ditutup ?: null,
+        ]);
+
+        $this->showWaktuModal = false;
+        session()->flash('message', 'Periode waktu penanganan berkas berhasil diatur.');
+    }
+
+    public function updateStatus($id, $status)
+    {
+        if (Auth::user()->role !== 'admin') return;
+        $validStatuses = ['pending', 'disetujui', 'ditolak'];
+        if (!in_array($status, $validStatuses)) return;
+
+        Lapinhar::findOrFail($id)->update(['status_verifikasi' => $status]);
+        session()->flash('message', 'Status verifikasi berhasil diubah menjadi ' . strtoupper($status) . '.');
     }
 
     public function delete($id)
     {
         $data = Lapinhar::findOrFail($id);
-
         if (Auth::user()->role !== 'admin' && Auth::id() !== $data->user_id) {
             session()->flash('message', 'Anda tidak berhak menghapus data ini.');
             return;
         }
-
         $data->delete();
         session()->flash('message', 'Laporan berhasil dihapus.');
     }
 
-    public function closeModal()
-    {
-        $this->showModal = false;
-    }
-
     private function resetInput()
     {
-        $this->reset([
-            'nomor_surat',
-            'sumber_informasi',
-            'bidang',
-            'peristiwa',
-            'pendapat',
-            'lapinhar_id'
-        ]);
+        $this->reset(['nomor_surat', 'sumber_informasi', 'bidang', 'peristiwa', 'pendapat', 'lapinhar_id', 'tanggal_dibuka', 'tanggal_ditutup']);
         $this->status = 'rahasia';
         $this->status_verifikasi = 'pending';
     }

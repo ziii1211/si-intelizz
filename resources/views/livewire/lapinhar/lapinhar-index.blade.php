@@ -16,13 +16,23 @@
                     Cetak Rekap
                 </a>
 
-                <button wire:click="create"
-                    class="inline-flex items-center px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-green-600/20 transition-all active:scale-95">
-                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                    </svg>
-                    Laporan Baru
-                </button>
+                <!-- KUNCI TOMBOL: Hanya muncul jika portal dibuka oleh Admin -->
+                @if(isset($isPeriodeAktif) && $isPeriodeAktif)
+                    <button wire:click="create"
+                        class="inline-flex items-center px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-green-600/20 transition-all active:scale-95">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Laporan Baru
+                    </button>
+                @else
+                    <div class="inline-flex items-center px-4 py-2.5 bg-rose-50 text-rose-700 border border-rose-200 text-xs font-black rounded-xl gap-2 shadow-sm">
+                        <svg class="w-4 h-4 text-rose-500 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
+                        </svg>
+                        PORTAL INPUT DITUTUP
+                    </div>
+                @endif
             </div>
         </div>
 
@@ -135,109 +145,4 @@
             </div>
         </div>
     </div>
-
-    @if($showModal)
-    <div class="fixed z-[100] inset-0 overflow-y-auto" x-data="{ open: true }">
-        <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" wire:click="$set('showModal', false)"></div>
-
-            <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-4xl overflow-hidden transition-all border border-slate-200">
-                <div class="bg-slate-50 px-8 py-5 border-b border-slate-100 flex justify-between items-center">
-                    <h3 class="text-xl font-black text-slate-800 uppercase tracking-tight">
-                        {{ $is_edit ? 'Form Verifikasi & Edit' : 'Penyusunan Laporan Baru' }}
-                    </h3>
-                    <button wire:click="$set('showModal', false)" class="text-slate-400 hover:text-slate-600 transition-colors">
-                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                </div>
-
-                <div class="px-8 py-8">
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div class="space-y-6">
-                            <div>
-                                <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Nomor Surat</label>
-                                <input type="text" wire:model="nomor_surat" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-green-500 focus:border-green-500 transition-all px-4 py-2.5" placeholder="R-XXX/O.3.10/Dek.1/MM/YYYY">
-                                @error('nomor_surat') <span class="text-rose-500 text-[10px] font-bold mt-1 uppercase">{{ $message }}</span> @enderror
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Tanggal</label>
-                                    <input type="date" wire:model="tanggal_surat" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-green-500">
-                                </div>
-                                <div>
-                                    <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Bidang</label>
-                                    <select wire:model="bidang" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-green-500 px-4 py-2.5">
-                                        <option value="">-- Pilih --</option>
-                                        <option value="Ideologi">Ideologi</option>
-                                        <option value="Politik">Politik</option>
-                                        <option value="Ekonomi">Ekonomi</option>
-                                        <option value="Sosial Budaya">Sosial Budaya</option>
-                                        <option value="Pertahanan Keamanan">Hankam</option>
-                                    </select>
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Sumber Informasi</label>
-                                <input type="text" wire:model="sumber_informasi" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-green-500 px-4 py-2.5" placeholder="Contoh: Media Massa, Laporan Masyarakat">
-                            </div>
-
-                            @if(auth()->user()->role === 'admin' && $is_edit)
-                            <div class="p-5 bg-slate-900 rounded-2xl border border-slate-800">
-                                <label class="block text-[10px] font-black text-green-500 uppercase tracking-[0.3em] mb-4">Otoritas Verifikasi Pimpinan</label>
-                                <div class="flex gap-2">
-                                    @foreach(['pending' => 'PENDING', 'disetujui' => 'SETUJUI', 'ditolak' => 'TOLAK'] as $key => $label)
-                                    <label class="flex-1">
-                                        <input type="radio" wire:model="status_verifikasi" value="{{ $key }}" class="hidden peer">
-                                        <div class="text-center py-2 text-[10px] font-black rounded-lg border border-slate-700 text-slate-500 peer-checked:bg-green-600 peer-checked:text-white peer-checked:border-green-600 cursor-pointer transition-all">
-                                            {{ $label }}
-                                        </div>
-                                    </label>
-                                    @endforeach
-                                </div>
-                            </div>
-                            @endif
-                        </div>
-
-                        <div class="space-y-6">
-                            <div>
-                                <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Peristiwa / Fakta-Fakta</label>
-                                <textarea wire:model="peristiwa" rows="5" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-green-500 px-4 py-3 resize-none" placeholder="Uraikan peristiwa secara detail..."></textarea>
-                            </div>
-                            <div>
-                                <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Analisa / Saran</label>
-                                <textarea wire:model="pendapat" rows="5" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-green-500 px-4 py-3 resize-none" placeholder="Masukan analisa intelijen Anda..."></textarea>
-                            </div>
-                            <div class="flex items-center gap-6 p-4 bg-slate-50 rounded-2xl border border-slate-100">
-                                <label class="text-xs font-black text-slate-500 uppercase tracking-widest">Sifat Laporan:</label>
-                                <div class="flex gap-4">
-                                    <label class="inline-flex items-center group cursor-pointer">
-                                        <input type="radio" wire:model="status" value="rahasia" class="text-rose-600 focus:ring-rose-500">
-                                        <span class="ml-2 text-xs font-bold text-slate-700">RAHASIA</span>
-                                    </label>
-                                    <label class="inline-flex items-center group cursor-pointer">
-                                        <input type="radio" wire:model="status" value="biasa" class="text-blue-600 focus:ring-blue-500">
-                                        <span class="ml-2 text-xs font-bold text-slate-700">BIASA</span>
-                                    </label>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="px-8 py-5 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-                    <button type="button" wire:click="$set('showModal', false)" class="px-6 py-2.5 text-sm font-bold text-slate-500 hover:text-slate-700 transition-colors">
-                        Batal
-                    </button>
-                    <button type="button" wire:click="store" class="px-8 py-2.5 bg-slate-900 hover:bg-black text-white text-sm font-black rounded-xl shadow-lg transition-all active:scale-95">
-                        Simpan Dokumen
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-    @endif
 </div>
