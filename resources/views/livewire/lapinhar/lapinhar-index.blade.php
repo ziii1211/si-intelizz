@@ -1,4 +1,4 @@
-<div class="py-8 bg-slate-50 min-h-screen">
+<div class="py-8 bg-slate-50 min-h-screen relative">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-6">
 
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
@@ -16,8 +16,7 @@
                     Cetak Rekap
                 </a>
 
-                <!-- KUNCI TOMBOL: Hanya muncul jika portal dibuka oleh Admin -->
-                @if(isset($isPeriodeAktif) && $isPeriodeAktif)
+                @if(\App\Models\PeriodePelaporan::isAktif())
                     <button wire:click="create"
                         class="inline-flex items-center px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white text-sm font-bold rounded-xl shadow-lg shadow-green-600/20 transition-all active:scale-95">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -145,4 +144,89 @@
             </div>
         </div>
     </div>
+
+    @if($showModal)
+    <div class="fixed z-[100] inset-0 overflow-y-auto">
+        <div class="flex items-center justify-center min-h-screen p-4">
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" wire:click="$set('showModal', false)"></div>
+            <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-2xl overflow-hidden border border-slate-200">
+                <div class="bg-green-50 px-6 py-4 border-b border-green-100 flex justify-between items-center">
+                    <h3 class="text-lg font-black text-green-800 uppercase tracking-tight">
+                        {{ $is_edit ? 'Edit Laporan' : 'Laporan Baru' }}
+                    </h3>
+                    <button wire:click="$set('showModal', false)" class="text-green-500 hover:text-green-700">
+                        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                </div>
+                
+                <form wire:submit.prevent="store">
+                    <div class="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Nomor Surat</label>
+                                <input type="text" wire:model="nomor_surat" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-green-500 px-4 py-2.5">
+                                @error('nomor_surat') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Tanggal Surat</label>
+                                <input type="date" wire:model="tanggal_surat" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-green-500 px-4 py-2.5">
+                                @error('tanggal_surat') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Sumber Informasi</label>
+                                <input type="text" wire:model="sumber_informasi" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-green-500 px-4 py-2.5">
+                                @error('sumber_informasi') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+                            <div>
+                                <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Bidang</label>
+                                <input type="text" wire:model="bidang" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-green-500 px-4 py-2.5">
+                                @error('bidang') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Peristiwa</label>
+                            <textarea wire:model="peristiwa" rows="3" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-green-500 px-4 py-2.5"></textarea>
+                            @error('peristiwa') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Pendapat</label>
+                            <textarea wire:model="pendapat" rows="3" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-green-500 px-4 py-2.5"></textarea>
+                            @error('pendapat') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-1">Status Keamanan</label>
+                            <select wire:model="status" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-green-500 px-4 py-2.5">
+                                <option value="rahasia">RAHASIA</option>
+                                <option value="biasa">BIASA</option>
+                            </select>
+                            @error('status') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+                        </div>
+                        
+                        @if(auth()->user()->role === 'admin' && $is_edit)
+                        <div class="mt-4 p-4 bg-amber-50 rounded-xl border border-amber-200">
+                            <label class="block text-xs font-black text-amber-800 uppercase tracking-widest mb-1">Status Verifikasi (Khusus Admin)</label>
+                            <select wire:model="status_verifikasi" class="w-full bg-white border-amber-300 rounded-xl text-sm focus:ring-amber-500 px-4 py-2.5">
+                                <option value="pending">PENDING</option>
+                                <option value="disetujui">DISETUJUI</option>
+                                <option value="ditolak">DITOLAK</option>
+                            </select>
+                        </div>
+                        @endif
+                    </div>
+
+                    <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
+                        <button type="button" wire:click="$set('showModal', false)" class="px-5 py-2 text-sm font-bold text-slate-500 hover:text-slate-700">Batal</button>
+                        <button type="submit" class="px-6 py-2 bg-green-600 hover:bg-green-500 text-white text-sm font-black rounded-xl shadow-lg transition-all">Simpan Laporan</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    @endif
 </div>

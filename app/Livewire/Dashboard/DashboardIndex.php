@@ -38,6 +38,12 @@ class DashboardIndex extends Component
     {
         if (Auth::user()->role !== 'admin') return;
 
+        // Validasi agar input tidak kosong dan tanggal tutup tidak mendahului tanggal buka
+        $this->validate([
+            'tanggal_buka' => 'required|date',
+            'tanggal_tutup' => 'required|date|after_or_equal:tanggal_buka',
+        ]);
+
         $periode = PeriodePelaporan::first() ?? new PeriodePelaporan();
         $periode->tanggal_buka = $this->tanggal_buka;
         $periode->tanggal_tutup = $this->tanggal_tutup;
@@ -45,6 +51,22 @@ class DashboardIndex extends Component
 
         $this->showPeriodeModal = false;
         session()->flash('message', 'Periode Pelaporan berhasil diatur!');
+    }
+
+    // FUNGSI UNTUK MERESET / MENGHAPUS PERIODE
+    public function resetPeriode()
+    {
+        if (Auth::user()->role !== 'admin') return;
+
+        // Menghapus data pengaturan periode secara permanen
+        PeriodePelaporan::truncate();
+
+        // Reset variabel form input
+        $this->tanggal_buka = null;
+        $this->tanggal_tutup = null;
+        $this->showPeriodeModal = false;
+
+        session()->flash('message', 'Periode pelaporan berhasil direset, portal kini tertutup!');
     }
 
     public function render()
@@ -70,8 +92,12 @@ class DashboardIndex extends Component
         $isPeriodeAktif = false;
 
         if ($periode && $periode->tanggal_buka && $periode->tanggal_tutup) {
-            $now = Carbon::now()->format('Y-m-d');
-            if ($now >= $periode->tanggal_buka && $now <= $periode->tanggal_tutup) {
+            // Gunakan Carbon untuk pengecekan hari ini yang lebih akurat
+            $now = Carbon::now()->startOfDay();
+            $buka = Carbon::parse($periode->tanggal_buka)->startOfDay();
+            $tutup = Carbon::parse($periode->tanggal_tutup)->endOfDay(); // Aktif sampai 23:59:59 pada tanggal tutup
+
+            if ($now->between($buka, $tutup)) {
                 $isPeriodeAktif = true;
             }
         }

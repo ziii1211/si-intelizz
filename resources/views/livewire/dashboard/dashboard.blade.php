@@ -1,6 +1,20 @@
 <div class="py-8 bg-slate-50 min-h-screen relative">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
 
+        @if (session()->has('message'))
+            <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-xl shadow-sm flex items-center justify-between transition-all">
+                <div class="flex items-center gap-3">
+                    <svg class="h-6 w-6 text-green-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                    <div>
+                        <h3 class="text-sm font-bold text-green-800">Berhasil!</h3>
+                        <p class="text-xs text-green-600 font-medium">{{ session('message') }}</p>
+                    </div>
+                </div>
+            </div>
+        @endif
+
         @if(isset($periode) && $periode)
             @if($isPeriodeAktif)
                 <div class="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-xl shadow-sm flex items-center justify-between">
@@ -61,7 +75,7 @@
                     </button>
                     @endif
                     
-                    <a href="{{ route('lapinhar.index') }}" wire:navigate class="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-medium py-2.5 px-5 rounded-lg transition backdrop-blur-sm flex items-center gap-2">
+                    <a href="{{ route('reports.lapinhar') }}" wire:navigate class="bg-white/10 hover:bg-white/20 text-white border border-white/20 font-medium py-2.5 px-5 rounded-lg transition backdrop-blur-sm flex items-center gap-2">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                         </svg>
@@ -177,7 +191,7 @@
                         </svg>
                         5 Lapinhar Terakhir
                     </h3>
-                    <a href="{{ route('lapinhar.index') }}" wire:navigate class="text-sm text-blue-600 font-semibold hover:text-blue-800 transition">Lihat Semua</a>
+                    <a href="{{ route('reports.lapinhar') }}" wire:navigate class="text-sm text-blue-600 font-semibold hover:text-blue-800 transition">Lihat Semua</a>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-sm text-left text-slate-600">
@@ -238,7 +252,7 @@
                     @if(isset($totalPending) && $totalPending > 0)
                     <div class="space-y-4">
                         @if(isset($pending['lapinhar']) && $pending['lapinhar'] > 0)
-                        <a href="{{ route('lapinhar.index') }}" wire:navigate class="flex items-center justify-between p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition group">
+                        <a href="{{ route('reports.lapinhar') }}" wire:navigate class="flex items-center justify-between p-3 bg-blue-50 rounded-lg hover:bg-blue-100 transition group">
                             <span class="text-sm font-medium text-blue-700">Lapinhar</span>
                             <span class="bg-white text-blue-600 text-xs font-bold px-2 py-1 rounded shadow-sm group-hover:scale-110 transition">{{ $pending['lapinhar'] }}</span>
                         </a>
@@ -311,15 +325,27 @@
                     <div>
                         <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Tanggal Dibuka</label>
                         <input type="date" wire:model="tanggal_buka" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-yellow-500 px-4 py-2.5">
+                        @error('tanggal_buka') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                     </div>
                     <div>
                         <label class="block text-xs font-black text-slate-500 uppercase tracking-widest mb-2">Tanggal Ditutup</label>
                         <input type="date" wire:model="tanggal_tutup" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-yellow-500 px-4 py-2.5">
+                        @error('tanggal_tutup') <span class="text-red-500 text-xs mt-1 block">{{ $message }}</span> @enderror
                     </div>
                 </div>
-                <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-end gap-3">
-                    <button wire:click="$set('showPeriodeModal', false)" class="px-5 py-2 text-sm font-bold text-slate-500 hover:text-slate-700">Batal</button>
-                    <button wire:click="simpanPeriode" class="px-6 py-2 bg-yellow-500 hover:bg-yellow-400 text-yellow-900 text-sm font-black rounded-xl shadow-lg transition-all">Simpan Aturan</button>
+                <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex justify-between items-center gap-3">
+                    <div>
+                        <button wire:click="resetPeriode" wire:confirm="Yakin ingin mereset/menghapus periode pelaporan?" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-sm font-bold rounded-xl shadow transition-all flex items-center gap-1">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                            </svg>
+                            Reset Waktu
+                        </button>
+                    </div>
+                    <div class="flex gap-2">
+                        <button wire:click="$set('showPeriodeModal', false)" class="px-4 py-2 text-sm font-bold text-slate-500 hover:text-slate-700">Batal</button>
+                        <button wire:click="simpanPeriode" class="px-5 py-2 bg-yellow-500 hover:bg-yellow-400 text-yellow-900 text-sm font-black rounded-xl shadow-lg transition-all">Simpan Aturan</button>
+                    </div>
                 </div>
             </div>
         </div>
