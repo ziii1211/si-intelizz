@@ -1,6 +1,7 @@
 <div class="py-8 bg-slate-50 min-h-screen relative">
     <div class="max-w-7xl mx-auto sm:px-6 lg:px-8 space-y-8">
 
+        <!-- Notifikasi Sukses Simpan -->
         @if (session()->has('message'))
             <div class="bg-green-50 border-l-4 border-green-500 p-4 rounded-xl shadow-sm flex items-center justify-between transition-all">
                 <div class="flex items-center gap-3">
@@ -85,32 +86,6 @@
             </div>
         </div>
 
-        @if(isset($lapinharAktif) && $lapinharAktif->count() > 0)
-        <div class="bg-cyan-50 border-l-4 border-cyan-500 p-5 rounded-xl shadow-sm flex items-start gap-4">
-            <div class="flex-shrink-0 mt-0.5">
-                <svg class="h-6 w-6 text-cyan-600 animate-pulse" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-            </div>
-            <div class="flex-1">
-                <h3 class="text-sm font-bold text-cyan-800 uppercase tracking-wide">
-                    Monitoring: Ada {{ $lapinharAktif->count() }} Berkas Lapinhar Sedang Diproses
-                </h3>
-                <div class="mt-2 text-sm text-cyan-700">
-                    <ul class="list-disc pl-5 space-y-1.5 font-medium">
-                        @foreach($lapinharAktif as $berkas)
-                        <li>
-                            <strong>{{ $berkas->nomor_surat }}</strong> 
-                            <span class="text-cyan-600">({{ Str::limit($berkas->peristiwa, 50) }})</span>
-                            <span class="inline-block text-xs font-bold bg-cyan-200 text-cyan-800 px-2 py-0.5 rounded ml-2">Dibuka: {{ \Carbon\Carbon::parse($berkas->tanggal_dibuka)->format('d/m/Y') }}</span>
-                        </li>
-                        @endforeach
-                    </ul>
-                </div>
-            </div>
-        </div>
-        @endif
-
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100 border-b-4 border-b-blue-500 hover:shadow-lg transition-all duration-300 group">
                 <div class="flex justify-between items-start mb-4">
@@ -123,9 +98,6 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
                         </svg>
                     </div>
-                </div>
-                <div class="flex items-center text-xs">
-                    <span class="text-slate-400">Total data masuk</span>
                 </div>
             </div>
 
@@ -141,9 +113,6 @@
                         </svg>
                     </div>
                 </div>
-                <div class="flex items-center text-xs">
-                    <span class="text-red-600 font-bold bg-red-50 px-1.5 py-0.5 rounded">Status: BURON</span>
-                </div>
             </div>
 
             <div class="bg-white rounded-xl p-6 shadow-sm border border-slate-100 border-b-4 border-b-indigo-500 hover:shadow-lg transition-all duration-300 group">
@@ -157,9 +126,6 @@
                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path>
                         </svg>
                     </div>
-                </div>
-                <div class="flex items-center text-xs">
-                    <span class="text-slate-400">Terdaftar & Aktif</span>
                 </div>
             </div>
 
@@ -175,10 +141,71 @@
                         </svg>
                     </div>
                 </div>
-                <div class="flex items-center text-xs">
-                    <span class="text-slate-500 font-medium">Data WNA Masuk</span>
+            </div>
+        </div>
+
+        <!-- FITUR BARU: EARLY WARNING SYSTEM & GRAFIK ANALITIK -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            
+            <!-- EARLY WARNING SYSTEM WNA -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                <div class="px-6 py-4 border-b border-slate-100 bg-rose-50/50 flex items-center justify-between">
+                    <h3 class="font-bold text-rose-800 flex items-center gap-2">
+                        <svg class="w-5 h-5 animate-pulse text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+                        </svg>
+                        Early Warning WNA
+                    </h3>
+                    <span class="text-xs font-bold bg-rose-200 text-rose-800 px-2 py-1 rounded">Izin Hampir Habis</span>
+                </div>
+                <div class="p-4 flex-1">
+                    @if(isset($wnaWarnings) && $wnaWarnings->count() > 0)
+                        <ul class="space-y-3">
+                            @foreach($wnaWarnings as $wna)
+                                @php
+                                    $sisaHari = \Carbon\Carbon::now()->diffInDays(\Carbon\Carbon::parse($wna->masa_berlaku_izin), false);
+                                    $isExpired = $sisaHari < 0;
+                                @endphp
+                                <li class="flex items-center justify-between p-3 {{ $isExpired ? 'bg-rose-50 border-rose-200' : 'bg-amber-50 border-amber-200' }} border rounded-lg">
+                                    <div>
+                                        <p class="text-sm font-bold {{ $isExpired ? 'text-rose-800' : 'text-amber-800' }}">{{ $wna->nama_lengkap }} ({{ $wna->negara_asal }})</p>
+                                        <p class="text-xs {{ $isExpired ? 'text-rose-600' : 'text-amber-600' }}">Paspor: {{ $wna->nomor_paspor }}</p>
+                                    </div>
+                                    <div class="text-right">
+                                        @if($isExpired)
+                                            <span class="text-xs font-black bg-rose-600 text-white px-2 py-1 rounded shadow-sm">KEDALUWARSA</span>
+                                        @else
+                                            <span class="text-xs font-black bg-amber-500 text-white px-2 py-1 rounded shadow-sm">SISA {{ intval($sisaHari) }} HARI</span>
+                                        @endif
+                                    </div>
+                                </li>
+                            @endforeach
+                        </ul>
+                    @else
+                        <div class="h-full flex flex-col items-center justify-center text-slate-400 py-8">
+                            <svg class="w-12 h-12 mb-2 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                            <p class="text-sm font-medium">Semua izin WNA terpantau aman.</p>
+                        </div>
+                    @endif
                 </div>
             </div>
+
+            <!-- GRAFIK ANALITIK INTELIJEN -->
+            <div class="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col">
+                <div class="px-6 py-4 border-b border-slate-100 bg-indigo-50/50">
+                    <h3 class="font-bold text-indigo-800 flex items-center gap-2">
+                        <svg class="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+                        </svg>
+                        Grafik Pemetaan Intelijen
+                    </h3>
+                </div>
+                <div class="p-4 flex-1 flex items-center justify-center">
+                    <!-- Area Render Chart.js -->
+                    <canvas id="intelChart" style="max-height: 250px;"></canvas>
+                </div>
+            </div>
+
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -312,7 +339,7 @@
     @if(isset($showPeriodeModal) && $showPeriodeModal)
     <div class="fixed z-[100] inset-0 overflow-y-auto">
         <div class="flex items-center justify-center min-h-screen p-4">
-            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm" wire:click="$set('showPeriodeModal', false)"></div>
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" wire:click="$set('showPeriodeModal', false)"></div>
             <div class="relative bg-white rounded-3xl shadow-2xl w-full max-w-md overflow-hidden border border-slate-200">
                 <div class="bg-yellow-50 px-6 py-4 border-b border-yellow-100 flex justify-between items-center">
                     <h3 class="text-lg font-black text-yellow-800 uppercase tracking-tight">Atur Waktu Pelaporan</h3>
@@ -352,3 +379,48 @@
     </div>
     @endif
 </div>
+
+<!-- Tambahkan script Chart.js di sini -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('livewire:initialized', () => {
+        const ctx = document.getElementById('intelChart');
+        if(ctx) {
+            new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: ['DPO Buron', 'DPO Tangkap', 'Ormas Pantauan', 'Ormas Dibekukan'],
+                    datasets: [{
+                        label: 'Total Data',
+                        data: [
+                            {{ $chartData['dpo_buron'] ?? 0 }}, 
+                            {{ $chartData['dpo_tertangkap'] ?? 0 }}, 
+                            {{ $chartData['ormas_waspada'] ?? 0 }}, 
+                            {{ $chartData['ormas_dibekukan'] ?? 0 }}
+                        ],
+                        backgroundColor: [
+                            'rgba(225, 29, 72, 0.8)',   // Rose untuk Buron
+                            'rgba(16, 185, 129, 0.8)',  // Emerald untuk Tertangkap
+                            'rgba(245, 158, 11, 0.8)',  // Amber untuk Ormas Pantauan
+                            'rgba(71, 85, 105, 0.8)'    // Slate untuk Ormas Dibekukan
+                        ],
+                        borderRadius: 6,
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false }
+                    },
+                    scales: {
+                        y: { 
+                            beginAtZero: true,
+                            ticks: { precision: 0 } // Menghindari angka desimal
+                        }
+                    }
+                }
+            });
+        }
+    });
+</script>

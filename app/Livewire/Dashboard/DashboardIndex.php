@@ -19,7 +19,6 @@ class DashboardIndex extends Component
     public $tanggal_buka;
     public $tanggal_tutup;
 
-    // FUNGSI MEMBUKA MODAL (HANYA ADMIN)
     public function aturPeriode()
     {
         if (Auth::user()->role !== 'admin') return;
@@ -33,12 +32,10 @@ class DashboardIndex extends Component
         $this->showPeriodeModal = true;
     }
 
-    // FUNGSI MENYIMPAN PERIODE BUKA-TUTUP PORTAL
     public function simpanPeriode()
     {
         if (Auth::user()->role !== 'admin') return;
 
-        // Validasi agar input tidak kosong dan tanggal tutup tidak mendahului tanggal buka
         $this->validate([
             'tanggal_buka' => 'required|date',
             'tanggal_tutup' => 'required|date|after_or_equal:tanggal_buka',
@@ -53,15 +50,12 @@ class DashboardIndex extends Component
         session()->flash('message', 'Periode Pelaporan berhasil diatur!');
     }
 
-    // FUNGSI UNTUK MERESET / MENGHAPUS PERIODE
     public function resetPeriode()
     {
         if (Auth::user()->role !== 'admin') return;
 
-        // Menghapus data pengaturan periode secara permanen
         PeriodePelaporan::truncate();
 
-        // Reset variabel form input
         $this->tanggal_buka = null;
         $this->tanggal_tutup = null;
         $this->showPeriodeModal = false;
@@ -76,6 +70,7 @@ class DashboardIndex extends Component
         $totalOrmas = Ormas::where('status_pengawasan', 'aktif')->count();
         $totalWna = Wna::count();
         $latestLapinhar = Lapinhar::latest()->take(5)->get();
+        $lapinharAktif = Lapinhar::where('status_verifikasi', 'pending')->take(3)->get();
 
         $pending = [
             'lapinhar' => Lapinhar::where('status_verifikasi', 'pending')->count(),
@@ -92,15 +87,30 @@ class DashboardIndex extends Component
         $isPeriodeAktif = false;
 
         if ($periode && $periode->tanggal_buka && $periode->tanggal_tutup) {
-            // Gunakan Carbon untuk pengecekan hari ini yang lebih akurat
             $now = Carbon::now()->startOfDay();
             $buka = Carbon::parse($periode->tanggal_buka)->startOfDay();
-            $tutup = Carbon::parse($periode->tanggal_tutup)->endOfDay(); // Aktif sampai 23:59:59 pada tanggal tutup
+            $tutup = Carbon::parse($periode->tanggal_tutup)->endOfDay();
 
             if ($now->between($buka, $tutup)) {
                 $isPeriodeAktif = true;
             }
         }
+
+        // --- FITUR BARU 1: EARLY WARNING SYSTEM WNA ---
+        // Cari WNA yang izinnya kedaluwarsa atau sisa < 30 hari
+        $wnaWarnings = Wna::whereNotNull('masa_berlaku_izin')
+            ->where('masa_berlaku_izin', '<=', Carbon::now()->addDays(30)->format('Y-m-d'))
+            ->orderBy('masa_berlaku_izin', 'asc')
+            ->take(5)
+            ->get();
+
+        // --- FITUR BARU 2: DATA GRAFIK ANALITIK ---
+        $chartData = [
+            'dpo_buron' => $totalDpo,
+            'dpo_tertangkap' => Dpo::where('status_pencarian', 'tertangkap')->count(),
+            'ormas_waspada' => Ormas::where('status_pengawasan', 'waspada')->count(),
+            'ormas_dibekukan' => Ormas::where('status_pengawasan', 'dibekukan')->count(),
+        ];
 
         return view('livewire.dashboard.dashboard', [
             'totalLapinhar' => $totalLapinhar,
@@ -108,10 +118,13 @@ class DashboardIndex extends Component
             'totalOrmas' => $totalOrmas,
             'totalWna' => $totalWna,
             'latestLapinhar' => $latestLapinhar,
+            'lapinharAktif' => $lapinharAktif,
             'pending' => $pending,
             'totalPending' => $totalPending,
             'periode' => $periode,
             'isPeriodeAktif' => $isPeriodeAktif,
+            'wnaWarnings' => $wnaWarnings, // Kirim ke view
+            'chartData' => $chartData,     // Kirim ke view
         ])->layout('layouts.app');
     }
 }
