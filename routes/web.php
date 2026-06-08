@@ -68,7 +68,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
             Route::get('/ormas/{id}', 'cetakOrmasSatuan')->name('ormas.satuan');
             Route::get('/pam-sdo/{id}', 'cetakPamSdoSatuan')->name('pam-sdo.satuan');
             Route::get('/jms/{id}', 'cetakJmsSatuan')->name('jms.satuan');
-
+            
+            Route::post('/pemetaan', 'cetakPemetaan')->name('pemetaan');
+            
             // System Logs & Stats
             Route::get('/user-stats', 'cetakUserStats')->name('user-stats');
         });
