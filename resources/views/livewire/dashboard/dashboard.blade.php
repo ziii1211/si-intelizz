@@ -1,11 +1,9 @@
 <div class="-m-4 sm:-m-6 lg:-m-8 p-4 sm:p-6 lg:p-8 bg-[#182a20] min-h-[calc(100vh-4rem)] text-slate-200 font-sans relative">
     
-    <!-- Subtle background pattern mimicking the image -->
     <div class="absolute inset-0 opacity-10 pointer-events-none" style="background-image: radial-gradient(circle at 15% 50%, rgba(255,255,255,0.08), transparent 25%), radial-gradient(circle at 85% 30%, rgba(255,255,255,0.08), transparent 25%);"></div>
 
     <div class="max-w-7xl mx-auto space-y-6 relative z-10">
 
-        <!-- Notifikasi & Status Periode -->
         <div class="space-y-4">
             @if (session()->has('message'))
                 <div class="bg-[#24382d] border-l-4 border-emerald-500 p-4 rounded-xl shadow-lg flex items-center justify-between">
@@ -52,14 +50,13 @@
             @endif
         </div>
 
-        <!-- Header -->
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-2">
             <div>
                 <h2 class="text-[15px] font-medium text-white flex items-center gap-2">
                     <span class="font-bold">Hey {{ Auth::user()->name }}</span> - here's what's happening with your intelligence data today
                 </h2>
                 @if(Auth::user()->role === 'admin')
-                <p class="text-xs text-yellow-400 mt-1">Anda memiliki {{ $totalPending ?? 0 }} item yang menunggu verifikasi.</p>
+                <p class="text-xs text-yellow-400 mt-1">Anda memiliki {{ $totalPending ?? 0 }} Laporan yang menunggu verifikasi.</p>
                 @endif
             </div>
             
@@ -77,7 +74,6 @@
             </div>
         </div>
 
-        <!-- Stat Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div class="bg-[#24382d] rounded-[1.25rem] p-5 shadow-lg relative overflow-hidden border border-white/5">
                 <div class="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent opacity-50"></div>
@@ -124,18 +120,11 @@
             </div>
         </div>
 
-        <!-- Middle Section: Chart & Traffic Sources -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
             
-            <!-- Chart -->
             <div class="lg:col-span-2 bg-[#24382d] rounded-[1.25rem] p-6 shadow-lg border border-white/5 flex flex-col">
                 <div class="flex justify-between items-center mb-6">
                     <h3 class="text-[15px] font-medium text-white">Grafik Pemetaan Intelijen</h3>
-                    <div class="hidden sm:flex items-center gap-1 bg-[#1e2f25] p-1 rounded-lg border border-white/5">
-                        <button class="text-[10px] text-white bg-[#374c40] px-3 py-1.5 rounded-md font-medium shadow-sm transition">All Data</button>
-                        <button class="text-[10px] text-slate-400 hover:text-white px-3 py-1.5 rounded-md font-medium transition">DPO</button>
-                        <button class="text-[10px] text-slate-400 hover:text-white px-3 py-1.5 rounded-md font-medium transition">Ormas</button>
-                    </div>
                     <button class="text-xs text-slate-300 hover:text-white flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-lg border border-white/5 transition" onclick="window.print()">
                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
                         Export PDF
@@ -146,7 +135,6 @@
                 </div>
             </div>
 
-            <!-- Menunggu Verifikasi (Mapped to Traffic Sources style) -->
             <div class="bg-[#24382d] rounded-[1.25rem] p-6 shadow-lg border border-white/5 flex flex-col">
                 <div class="flex justify-between items-center mb-8">
                     <h3 class="text-[15px] font-medium text-white">Menunggu Verifikasi</h3>
@@ -199,10 +187,8 @@
 
         </div>
 
-        <!-- Bottom Section: Transactions & Recent Customers -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-            <!-- 5 Lapinhar Terakhir (Mapped to Transactions style) -->
             <div class="lg:col-span-2 bg-[#24382d] rounded-[1.25rem] p-6 shadow-lg border border-white/5">
                 <div class="flex justify-between items-center mb-6">
                     <div>
@@ -219,7 +205,6 @@
                         @foreach($latestLapinhar as $item)
                         <div class="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 hover:bg-white/5 rounded-xl transition cursor-pointer gap-4">
                             <div class="flex items-center gap-4 w-full sm:w-1/3">
-                                <!-- Status Pill -->
                                 <div class="flex items-center w-24 shrink-0">
                                     @if($item->status_verifikasi == 'disetujui')
                                         <div class="flex items-center gap-2 bg-emerald-500/10 px-2 py-1 rounded-full border border-emerald-500/20">
@@ -265,7 +250,6 @@
                 </div>
             </div>
 
-            <!-- Early Warning WNA (Mapped to Recent Customers style) -->
             <div class="bg-[#24382d] rounded-[1.25rem] p-6 shadow-lg border border-white/5 flex flex-col">
                 <div class="mb-6">
                     <h3 class="text-[15px] font-medium text-white">Early Warning WNA</h3>
@@ -321,7 +305,6 @@
 
     </div>
 
-    <!-- Modal Atur Periode (Dark Theme) -->
     @if(isset($showPeriodeModal) && $showPeriodeModal)
     <div class="fixed z-[100] inset-0 overflow-y-auto">
         <div class="flex items-center justify-center min-h-screen p-4">
@@ -365,66 +348,72 @@
     @endif
 </div>
 
-<!-- Script Chart.js dengan desain Curve Area mirip gambar -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
     document.addEventListener('livewire:initialized', () => {
         const ctx = document.getElementById('intelChart');
         if(ctx) {
-            // Create gradient for the area chart
             const chartCtx = ctx.getContext('2d');
+            
+            // Array warna sesuai dengan Menunggu Verifikasi
+            const moduleColors = ['#34d399', '#f43f5e', '#5e61ff', '#eab308', '#a855f7', '#0ea5e9'];
+
+            // Warna untuk Garis "Dalam Proses / Kerawanan" (Biru/Ungu)
             let gradient1 = chartCtx.createLinearGradient(0, 0, 0, 300);
-            gradient1.addColorStop(0, 'rgba(94, 97, 255, 0.4)');   // Blue-ish top
-            gradient1.addColorStop(1, 'rgba(94, 97, 255, 0.01)');  // Transparent bottom
+            gradient1.addColorStop(0, 'rgba(94, 97, 255, 0.4)');
+            gradient1.addColorStop(1, 'rgba(94, 97, 255, 0.01)');
 
+            // Warna untuk Garis "Selesai / Kondusif" (Hijau Emerald)
             let gradient2 = chartCtx.createLinearGradient(0, 0, 0, 300);
-            gradient2.addColorStop(0, 'rgba(52, 211, 153, 0.4)');  // Emerald top
-            gradient2.addColorStop(1, 'rgba(52, 211, 153, 0.01)'); // Transparent bottom
+            gradient2.addColorStop(0, 'rgba(52, 211, 153, 0.4)');
+            gradient2.addColorStop(1, 'rgba(52, 211, 153, 0.01)');
 
-            // Mimicking the curved dual-line area chart from the screenshot
-            // Since we only have 4 data points statically, we interpolate them 
-            // slightly to make it look like a smooth timeline if we want, 
-            // but for accuracy we map our 4 categories to a line format.
             new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: ['Buronan', 'Tertangkap', 'Ormas Pantau', 'Ormas Beku'],
+                    labels: ['DPO', 'Ormas', 'Lapinhar', 'WNA', 'PAM SDO', 'JMS'],
                     datasets: [
                         {
-                            label: 'Data Utama',
+                            label: 'Proses / Kerawanan',
                             data: [
-                                {{ $chartData['dpo_buron'] ?? 10 }}, 
-                                {{ $chartData['dpo_tertangkap'] ?? 25 }}, 
-                                {{ $chartData['ormas_waspada'] ?? 15 }}, 
-                                {{ $chartData['ormas_dibekukan'] ?? 30 }}
+                                {{ $chartData['dpo_buron'] ?? 0 }}, 
+                                {{ $chartData['ormas_waspada'] ?? 0 }}, 
+                                {{ $chartData['lapinhar_pending'] ?? 0 }}, 
+                                {{ $chartData['wna_warning'] ?? 0 }},
+                                {{ $chartData['pam_berjalan'] ?? 0 }},
+                                {{ $chartData['jms_terjadwal'] ?? 0 }}
                             ],
-                            borderColor: '#5e61ff', // Blue line
+                            borderColor: '#5e61ff', // Blue
                             backgroundColor: gradient1,
                             borderWidth: 2,
-                            tension: 0.4, // Smooth curve
+                            tension: 0.4,
                             fill: true,
-                            pointBackgroundColor: '#182a20',
-                            pointBorderColor: '#5e61ff',
+                            pointBackgroundColor: moduleColors,
+                            pointBorderColor: '#182a20',
                             pointBorderWidth: 2,
-                            pointRadius: 4,
-                            pointHoverRadius: 6
+                            pointRadius: 6,
+                            pointHoverRadius: 8
                         },
                         {
-                            label: 'Data Sekunder',
-                            // Just a subtle offset data to mimic the 2 lines in the image
+                            label: 'Selesai / Kondusif',
                             data: [
-                                {{ ($chartData['dpo_buron'] ?? 10) * 0.6 }}, 
-                                {{ ($chartData['dpo_tertangkap'] ?? 25) * 0.8 }}, 
-                                {{ ($chartData['ormas_waspada'] ?? 15) * 0.5 }}, 
-                                {{ ($chartData['ormas_dibekukan'] ?? 30) * 0.7 }}
+                                {{ $chartData['dpo_tertangkap'] ?? 0 }}, 
+                                {{ $chartData['ormas_dibekukan'] ?? 0 }}, 
+                                {{ $chartData['lapinhar_selesai'] ?? 0 }}, 
+                                {{ $chartData['wna_aman'] ?? 0 }},
+                                {{ $chartData['pam_selesai'] ?? 0 }},
+                                {{ $chartData['jms_terlaksana'] ?? 0 }}
                             ],
-                            borderColor: '#34d399', // Emerald line
+                            borderColor: '#34d399', // Emerald
                             backgroundColor: gradient2,
                             borderWidth: 2,
                             tension: 0.4,
                             fill: true,
-                            pointRadius: 0,
-                            pointHoverRadius: 0
+                            pointBackgroundColor: moduleColors,
+                            pointBorderColor: '#182a20',
+                            pointBorderWidth: 2,
+                            pointRadius: 6,
+                            pointHoverRadius: 8
                         }
                     ]
                 },
@@ -436,7 +425,19 @@
                         intersect: false,
                     },
                     plugins: {
-                        legend: { display: false },
+                        // Menampilkan legend agar saat PDF dicetak, pembaca tahu Biru dan Hijau itu apa
+                        legend: { 
+                            display: true,
+                            position: 'top',
+                            align: 'end',
+                            labels: {
+                                color: '#cbd5e1',
+                                boxWidth: 10,
+                                boxHeight: 10,
+                                usePointStyle: true,
+                                font: { size: 11 }
+                            }
+                        },
                         tooltip: {
                             backgroundColor: '#1e2f25',
                             titleColor: '#fff',

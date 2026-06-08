@@ -63,6 +63,52 @@ class DashboardIndex extends Component
         session()->flash('message', 'Periode pelaporan berhasil direset, portal kini tertutup!');
     }
 
+    /// --- FITUR BARU: LOGIC PENGECEKAN DEADLINE ---
+    public function getApproachingDeadlines()
+    {
+        // Siapkan penampung kosong
+        $deadlines = collect();
+
+        // 1. Cek Deadline Lapinhar (Aman, sudah ada batas_waktu)
+        $lapinhar = Lapinhar::where('status_verifikasi', 'pending')
+            ->whereNotNull('batas_waktu')
+            ->whereBetween('batas_waktu', [Carbon::now(), Carbon::now()->addDays(3)])
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'modul' => 'Lapinhar',
+                    'judul' => $item->perihal ?? 'Laporan Harian Baru',
+                    'batas_waktu' => $item->batas_waktu,
+                    'sisa_hari' => Carbon::parse($item->batas_waktu)->diffInDays(Carbon::now()),
+                    'url' => route('lapinhar.index')
+                ];
+            });
+        $deadlines = $deadlines->merge($lapinhar);
+
+        // 2. Cek Deadline DPO (Aman, sudah ada batas_waktu)
+        $dpo = Dpo::where('status_verifikasi', 'pending')
+            ->whereNotNull('batas_waktu')
+            ->whereBetween('batas_waktu', [Carbon::now(), Carbon::now()->addDays(3)])
+            ->get()
+            ->map(function ($item) {
+                return [
+                    'modul' => 'DPO',
+                    'judul' => 'Tersangka: ' . ($item->nama_tersangka ?? 'Anonim'),
+                    'batas_waktu' => $item->batas_waktu,
+                    'sisa_hari' => Carbon::parse($item->batas_waktu)->diffInDays(Carbon::now()),
+                    'url' => route('dpo.index')
+                ];
+            });
+        $deadlines = $deadlines->merge($dpo);
+
+        // NOTE: Pengecekan WNA, Ormas, dan PAM SDO dinonaktifkan sementara 
+        // karena tabel di database belum memiliki kolom 'batas_waktu'.
+        // Jika nanti dosen meminta, tinggal tambahkan kolom tersebut via migration.
+
+        // Urutkan dari yang paling mendesak (paling dekat dengan hari ini)
+        return $deadlines->sortBy('batas_waktu')->values();
+    }
+
     public function render()
     {
         $totalLapinhar = Lapinhar::count();
@@ -97,21 +143,43 @@ class DashboardIndex extends Component
         }
 
         // --- FITUR BARU 1: EARLY WARNING SYSTEM WNA ---
-        // Cari WNA yang izinnya kedaluwarsa atau sisa < 30 hari
         $wnaWarnings = Wna::whereNotNull('masa_berlaku_izin')
             ->where('masa_berlaku_izin', '<=', Carbon::now()->addDays(30)->format('Y-m-d'))
             ->orderBy('masa_berlaku_izin', 'asc')
             ->take(5)
             ->get();
 
-        // --- FITUR BARU 2: DATA GRAFIK ANALITIK ---
-        $chartData = [
-            'dpo_buron' => $totalDpo,
-            'dpo_tertangkap' => Dpo::where('status_pencarian', 'tertangkap')->count(),
-            'ormas_waspada' => Ormas::where('status_pengawasan', 'waspada')->count(),
-            'ormas_dibekukan' => Ormas::where('status_pengawasan', 'dibekukan')->count(),
-        ];
+        // --- FITUR BARU 2: DATA GRAFIK ANALITIK KOMPREHENSIF ---
+$chartData = [
+    // 1. DPO
+    'dpo_buron' => Dpo::where('status_pencarian', 'buron')->count(),
+    'dpo_tertangkap' => Dpo::where('status_pencarian', 'tertangkap')->count(),
 
+    // 2. ORMAS
+    'ormas_waspada' => Ormas::where('status_pengawasan', 'waspada')->count(),
+    'ormas_dibekukan' => Ormas::where('status_pengawasan', 'dibekukan')->count(), // Atau 'aman' tergantung status di DB lo
+
+    // 3. LAPINHAR
+    'lapinhar_pending' => Lapinhar::where('status_verifikasi', 'pending')->count(),
+    'lapinhar_selesai' => Lapinhar::where('status_verifikasi', 'disetujui')->count(),
+
+    // 4. WNA (Logic: Warning jika masa berlaku < 30 hari)
+    'wna_warning' => Wna::where('masa_berlaku_izin', '<=', Carbon::now()->addDays(30))->count(),
+    'wna_aman' => Wna::where('masa_berlaku_izin', '>', Carbon::now()->addDays(30))->count(),
+
+    // 5. PAM SDO
+    'pam_berjalan' => PamSdo::where('status_verifikasi', 'pending')->count(),
+    'pam_selesai' => PamSdo::where('status_verifikasi', 'disetujui')->count(),
+
+    // 6. JAKSA MASUK SEKOLAH (JMS)
+    'jms_terjadwal' => JmsActivity::where('status_verifikasi', 'pending')->count(),
+    'jms_terlaksana' => JmsActivity::where('status_verifikasi', 'disetujui')->count(),
+];
+
+        // --- PANGGIL FUNGSI DEADLINE NOTIFIKASI ---
+        $notifikasiDeadline = $this->getApproachingDeadlines();
+
+        // Pass data ke View Dashboard, DAN pass Notifikasi ke Layout Utama (Header)
         return view('livewire.dashboard.dashboard', [
             'totalLapinhar' => $totalLapinhar,
             'totalDpo' => $totalDpo,
@@ -123,8 +191,11 @@ class DashboardIndex extends Component
             'totalPending' => $totalPending,
             'periode' => $periode,
             'isPeriodeAktif' => $isPeriodeAktif,
-            'wnaWarnings' => $wnaWarnings, // Kirim ke view
-            'chartData' => $chartData,     // Kirim ke view
-        ])->layout('layouts.app');
+            'wnaWarnings' => $wnaWarnings,
+            'chartData' => $chartData,
+            'notifikasiDeadline' => $notifikasiDeadline // Data list notifikasi ini yang akan kita looping
+        ])->layout('layouts.app', [
+            'notifikasiDeadline' => $notifikasiDeadline // Pastikan Layout Header bisa membacanya
+        ]);
     }
 }

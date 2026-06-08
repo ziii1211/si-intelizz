@@ -15,10 +15,11 @@ class DpoIndex extends Component
 {
     use WithPagination, WithFileUploads;
 
-    // Data Input
+    // Data Input (Tambahkan batas_waktu di sini)
     public $nama_lengkap, $tempat_lahir, $tanggal_lahir, $kasus;
     public $status_hukum, $ciri_fisik, $status_pencarian = 'buron';
     public $status_verifikasi = 'pending'; // Default status
+    public $batas_waktu; // <--- INI TAMBAHANNYA
 
     // Upload Foto
     public $foto;      // Penampung file baru
@@ -40,6 +41,7 @@ class DpoIndex extends Component
             'ciri_fisik' => 'nullable|string',
             'status_pencarian' => 'required|in:buron,tertangkap',
             'status_verifikasi' => 'required|in:pending,disetujui,ditolak',
+            'batas_waktu' => 'nullable|date', // <--- INI TAMBAHANNYA
             'foto' => 'nullable|image|max:2048', // Max 2MB
         ];
     }
@@ -60,7 +62,8 @@ class DpoIndex extends Component
 
     public function create()
     {
-        $this->reset(['nama_lengkap', 'tempat_lahir', 'tanggal_lahir', 'kasus', 'status_hukum', 'ciri_fisik', 'foto', 'old_foto', 'dpo_id']);
+        // Tambahkan batas_waktu di reset
+        $this->reset(['nama_lengkap', 'tempat_lahir', 'tanggal_lahir', 'kasus', 'status_hukum', 'ciri_fisik', 'batas_waktu', 'foto', 'old_foto', 'dpo_id']);
         $this->status_pencarian = 'buron';
         $this->status_verifikasi = 'pending';
         $this->is_edit = false;
@@ -80,6 +83,9 @@ class DpoIndex extends Component
         $this->ciri_fisik = $data->ciri_fisik;
         $this->status_pencarian = $data->status_pencarian;
         $this->status_verifikasi = $data->status_verifikasi;
+        
+        // <--- INI TAMBAHANNYA
+        $this->batas_waktu = $data->batas_waktu ? \Carbon\Carbon::parse($data->batas_waktu)->format('Y-m-d') : null;
 
         $this->old_foto = $data->foto;
         $this->foto = null;
@@ -100,6 +106,7 @@ class DpoIndex extends Component
             'status_hukum' => $this->status_hukum,
             'ciri_fisik' => $this->ciri_fisik,
             'status_pencarian' => $this->status_pencarian,
+            'batas_waktu' => $this->batas_waktu, // <--- INI TAMBAHANNYA
         ];
 
         // Logika Status Verifikasi

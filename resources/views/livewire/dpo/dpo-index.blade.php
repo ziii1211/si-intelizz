@@ -99,12 +99,18 @@
                             </td>
                             <td class="px-6 py-4">
                                 <div class="font-bold text-slate-700 tracking-normal normal-case">{{ $item->kasus }}</div>
-                                <div class="flex gap-2 mt-2">
+                                <div class="flex gap-2 mt-2 items-center">
                                     <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-600 border border-slate-200 font-bold uppercase">{{ $item->status_hukum }}</span>
                                     <span class="px-2 py-0.5 rounded font-black border {{ $item->status_pencarian == 'buron' ? 'bg-rose-50 text-rose-600 border-rose-200' : 'bg-emerald-50 text-emerald-600 border-emerald-200' }}">
                                         {{ strtoupper($item->status_pencarian) }}
                                     </span>
                                 </div>
+                                @if($item->batas_waktu)
+                                <div class="mt-2 text-[10px] font-bold text-slate-500 flex items-center gap-1">
+                                    <svg class="w-3 h-3 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    Target Selesai: <span class="text-rose-600">{{ \Carbon\Carbon::parse($item->batas_waktu)->format('d M Y') }}</span>
+                                </div>
+                                @endif
                             </td>
                             <td class="px-6 py-4 text-center">
                                 @php
@@ -275,6 +281,16 @@
                                     </select>
                                 </div>
                             </div>
+
+                            <div class="mt-4 border-t border-slate-100 pt-4">
+                                <label class="block text-[10px] font-black text-rose-500 uppercase tracking-widest mb-2 flex items-center gap-1">
+                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    Target Waktu Penyelesaian (Deadline)
+                                </label>
+                                <input type="date" wire:model="batas_waktu" class="w-full bg-slate-50 border-slate-200 rounded-xl text-sm focus:ring-rose-500 px-4 py-3">
+                                @error('batas_waktu') <span class="text-rose-500 text-[10px] font-bold mt-1 uppercase">{{ $message }}</span> @enderror
+                            </div>
+
                         </div>
                     </div>
                 </div>
