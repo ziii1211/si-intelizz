@@ -117,6 +117,14 @@ class LapinharIndex extends Component
         if ($this->is_edit) {
             $lapinhar = Lapinhar::findOrFail($this->lapinhar_id);
             $lapinhar->update($dataToSave);
+            if (Auth::user()->role === 'admin' && $this->status_verifikasi !== 'pending') {
+                foreach (Auth::user()->unreadNotifications as $notification) {
+                    // Cek apakah pesan notifikasi mengandung Nomor Surat ini
+                    if (isset($notification->data['pesan']) && str_contains($notification->data['pesan'], $this->nomor_surat)) {
+                        $notification->markAsRead(); 
+                    }
+                }
+            }
             session()->flash('message', 'Laporan berhasil diperbarui.');
         } else {
             $dataToSave['user_id'] = Auth::id();

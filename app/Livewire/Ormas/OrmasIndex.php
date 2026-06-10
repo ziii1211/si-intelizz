@@ -9,6 +9,7 @@ use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon; // <--- Import Carbon
 
 #[Layout('layouts.app')]
 class OrmasIndex extends Component
@@ -20,9 +21,8 @@ class OrmasIndex extends Component
     public $alamat_sekretariat, $jumlah_anggota, $nomor_sk;
     public $status_legalitas, $status_pengawasan = 'aktif';
     public $status_verifikasi = 'pending';
-
-    // [PENTING] Tambahkan properti ini agar tidak error
     public $kegiatan_utama, $afiliasi;
+    public $batas_waktu; // <--- Tambahan Properti Batas Waktu
 
     // Upload Foto
     public $foto_lambang;
@@ -43,9 +43,10 @@ class OrmasIndex extends Component
             'jumlah_anggota' => 'nullable|integer',
             'nomor_sk' => 'nullable|string',
             'status_legalitas' => 'required|string',
-            'kegiatan_utama' => 'required|string', // Wajib diisi sesuai database
+            'kegiatan_utama' => 'required|string', 
             'afiliasi' => 'nullable|string',
             'status_pengawasan' => 'required|in:aktif,waspada,dibekukan',
+            'batas_waktu' => 'nullable|date', // <--- Aturan Validasi Batas Waktu
             'foto_lambang' => 'nullable|image|max:2048',
             'status_verifikasi' => 'required|in:pending,disetujui,ditolak',
         ];
@@ -69,19 +70,11 @@ class OrmasIndex extends Component
     public function create()
     {
         $this->reset([
-            'nama_organisasi',
-            'nama_pimpinan',
-            'bentuk_organisasi',
-            'alamat_sekretariat',
-            'jumlah_anggota',
-            'nomor_sk',
-            'status_legalitas',
-            'status_pengawasan',
-            'foto_lambang',
-            'kegiatan_utama',
-            'afiliasi', // Reset juga field baru
-            'old_foto',
-            'ormas_id'
+            'nama_organisasi', 'nama_pimpinan', 'bentuk_organisasi',
+            'alamat_sekretariat', 'jumlah_anggota', 'nomor_sk',
+            'status_legalitas', 'status_pengawasan', 'foto_lambang',
+            'kegiatan_utama', 'afiliasi', 'batas_waktu', // Reset Batas Waktu
+            'old_foto', 'ormas_id'
         ]);
 
         $this->status_pengawasan = 'aktif';
@@ -102,13 +95,13 @@ class OrmasIndex extends Component
         $this->jumlah_anggota = $data->jumlah_anggota;
         $this->nomor_sk = $data->nomor_sk;
         $this->status_legalitas = $data->status_legalitas;
-
-        // Load data kegiatan
         $this->kegiatan_utama = $data->kegiatan_utama;
         $this->afiliasi = $data->afiliasi;
-
         $this->status_pengawasan = $data->status_pengawasan;
         $this->status_verifikasi = $data->status_verifikasi;
+
+        // <--- Load Batas Waktu
+        $this->batas_waktu = $data->batas_waktu ? Carbon::parse($data->batas_waktu)->format('Y-m-d') : null;
 
         $this->old_foto = $data->foto_lambang;
         $this->foto_lambang = null;
@@ -129,12 +122,10 @@ class OrmasIndex extends Component
             'jumlah_anggota' => $this->jumlah_anggota,
             'nomor_sk' => $this->nomor_sk,
             'status_legalitas' => $this->status_legalitas,
-
-            // [FIX] Masukkan data wajib ini
             'kegiatan_utama' => $this->kegiatan_utama,
             'afiliasi' => $this->afiliasi,
-
             'status_pengawasan' => $this->status_pengawasan,
+            'batas_waktu' => $this->batas_waktu, // <--- Simpan Batas Waktu
         ];
 
         if (Auth::user()->role === 'admin') {
@@ -155,6 +146,17 @@ class OrmasIndex extends Component
         if ($this->is_edit) {
             $ormas = Ormas::findOrFail($this->ormas_id);
             $ormas->update($dataToSave);
+
+            // --- LOGIKA PENGHAPUS NOTIFIKASI OTOMATIS Lonceng ---
+            if (Auth::user()->role === 'admin' && $this->status_verifikasi !== 'pending') {
+                foreach (Auth::user()->unreadNotifications as $notification) {
+                    if (isset($notification->data['pesan']) && str_contains($notification->data['pesan'], $this->nama_organisasi)) {
+                        $notification->markAsRead(); // Hapus dari lonceng
+                    }
+                }
+            }
+            // ----------------------------------------------------
+
             session()->flash('message', 'Data Ormas berhasil diperbarui.');
         } else {
             $dataToSave['user_id'] = Auth::id();

@@ -10,7 +10,7 @@ class Ormas extends Model
     protected $fillable = [
         'user_id',
         'nama_organisasi',
-        'nama_pimpinan', // <--- HARUS ADA INI
+        'nama_pimpinan', 
         'alamat_sekretariat',
         'bentuk_organisasi',
         'status_legalitas',
@@ -20,7 +20,17 @@ class Ormas extends Model
         'afiliasi',
         'status_pengawasan',
         'status_verifikasi',
+        'batas_waktu', // <--- Tambahan Batas Waktu
         'foto_lambang'
+    ];
+
+    protected $casts = [
+        'batas_waktu' => 'date', // Otomatis format tanggal
+        
+        // Enkripsi data sensitif (Yang tidak dipakai buat Search)
+        'alamat_sekretariat' => 'encrypted',
+        'kegiatan_utama' => 'encrypted',
+        'afiliasi' => 'encrypted',
     ];
 
     public function user(): BelongsTo

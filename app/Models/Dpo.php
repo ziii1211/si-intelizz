@@ -18,10 +18,14 @@ class Dpo extends Model
         'foto',
         'status_pencarian',
         'status_verifikasi',
+        'batas_waktu',
     ];
 
     protected $casts = [
         'tanggal_lahir' => 'date',
+        'batas_waktu' => 'date',
+        'kasus' => 'encrypted',
+        'ciri_fisik' => 'encrypted',
     ];
 
     public function user(): BelongsTo

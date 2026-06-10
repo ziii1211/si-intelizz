@@ -18,7 +18,14 @@ class PamSdo extends Model
         'keterangan',
         'status',            // Aman / Ada Insiden
         'status_verifikasi', // pending / disetujui / ditolak
-        'foto_dokumentasi'
+        'foto_dokumentasi',
+        'batas_waktu',
+    ];
+
+    protected $casts = [
+        'tanggal_kegiatan' => 'date', // Aku tambahkan ini juga biar format tanggalnya otomatis
+        'batas_waktu' => 'date',
+        'keterangan' => 'encrypted',
     ];
 
     public function user(): BelongsTo

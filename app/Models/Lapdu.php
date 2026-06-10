@@ -25,6 +25,11 @@ class Lapdu extends Model
 
     protected $casts = [
         'tanggal_terima' => 'date',
+        // Tambahan Enkripsi
+        'nik' => 'encrypted',
+        'no_hp_pelapor' => 'encrypted',
+        'uraian_pengaduan' => 'encrypted',
+        'keterangan_tindak_lanjut' => 'encrypted',
     ];
 
     public function user(): BelongsTo

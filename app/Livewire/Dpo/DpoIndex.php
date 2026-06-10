@@ -130,6 +130,14 @@ class DpoIndex extends Component
         if ($this->is_edit) {
             $dpo = Dpo::findOrFail($this->dpo_id);
             $dpo->update($dataToSave);
+            if ($this->status_verifikasi !== 'pending') {
+                foreach (Auth::user()->unreadNotifications as $notification) {
+                    // Cek apakah pesan notifikasi mengandung nama buronan yang baru saja diverifikasi
+                    if (isset($notification->data['pesan']) && str_contains($notification->data['pesan'], $this->nama_lengkap)) {
+                        $notification->markAsRead(); // Tandai dibaca agar hilang dari lonceng
+                    }
+                }
+            }
             session()->flash('message', 'Data DPO berhasil diperbarui.');
         } else {
             $dataToSave['user_id'] = Auth::id(); // Set pemilik data

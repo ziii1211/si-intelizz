@@ -11,6 +11,7 @@ use App\Models\JmsActivity;
 use App\Models\PamSdo;
 use App\Models\PeriodePelaporan;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 
 class DashboardIndex extends Component
@@ -63,29 +64,27 @@ class DashboardIndex extends Component
         session()->flash('message', 'Periode pelaporan berhasil direset, portal kini tertutup!');
     }
 
-    /// --- FITUR BARU: LOGIC PENGECEKAN DEADLINE ---
     public function getApproachingDeadlines()
     {
-        // Siapkan penampung kosong
         $deadlines = collect();
 
-        // 1. Cek Deadline Lapinhar (Aman, sudah ada batas_waktu)
+        // 1. Cek Deadline Lapinhar
         $lapinhar = Lapinhar::where('status_verifikasi', 'pending')
-            ->whereNotNull('batas_waktu')
-            ->whereBetween('batas_waktu', [Carbon::now(), Carbon::now()->addDays(3)])
+            ->whereNotNull('tanggal_ditutup')
+            ->whereBetween('tanggal_ditutup', [Carbon::now(), Carbon::now()->addDays(3)])
             ->get()
             ->map(function ($item) {
                 return [
                     'modul' => 'Lapinhar',
-                    'judul' => $item->perihal ?? 'Laporan Harian Baru',
-                    'batas_waktu' => $item->batas_waktu,
-                    'sisa_hari' => Carbon::parse($item->batas_waktu)->diffInDays(Carbon::now()),
+                    'judul' => 'No. Surat: ' . $item->nomor_surat,
+                    'batas_waktu' => $item->tanggal_ditutup,
+                    'sisa_hari' => Carbon::parse($item->tanggal_ditutup)->diffInDays(Carbon::now()),
                     'url' => route('lapinhar.index')
                 ];
             });
         $deadlines = $deadlines->merge($lapinhar);
 
-        // 2. Cek Deadline DPO (Aman, sudah ada batas_waktu)
+        // 2. Cek Deadline DPO
         $dpo = Dpo::where('status_verifikasi', 'pending')
             ->whereNotNull('batas_waktu')
             ->whereBetween('batas_waktu', [Carbon::now(), Carbon::now()->addDays(3)])
@@ -93,7 +92,7 @@ class DashboardIndex extends Component
             ->map(function ($item) {
                 return [
                     'modul' => 'DPO',
-                    'judul' => 'Tersangka: ' . ($item->nama_tersangka ?? 'Anonim'),
+                    'judul' => 'Tersangka: ' . ($item->nama_lengkap ?? 'Anonim'),
                     'batas_waktu' => $item->batas_waktu,
                     'sisa_hari' => Carbon::parse($item->batas_waktu)->diffInDays(Carbon::now()),
                     'url' => route('dpo.index')
@@ -101,12 +100,186 @@ class DashboardIndex extends Component
             });
         $deadlines = $deadlines->merge($dpo);
 
-        // NOTE: Pengecekan WNA, Ormas, dan PAM SDO dinonaktifkan sementara 
-        // karena tabel di database belum memiliki kolom 'batas_waktu'.
-        // Jika nanti dosen meminta, tinggal tambahkan kolom tersebut via migration.
-
-        // Urutkan dari yang paling mendesak (paling dekat dengan hari ini)
         return $deadlines->sortBy('batas_waktu')->values();
+    }
+
+    public function getLatestActivities()
+    {
+        $activities = collect();
+
+        Lapinhar::latest()->take(5)->get()->each(function($item) use ($activities) {
+            $activities->push((object)[
+                'modul' => 'LAPINHAR',
+                'judul' => 'Bidang: ' . $item->bidang,
+                'deskripsi' => Str::limit($item->peristiwa, 50),
+                'tanggal' => $item->created_at,
+                'status' => $item->status_verifikasi,
+                'url' => route('lapinhar.index'),
+                'warna' => 'text-blue-400'
+            ]);
+        });
+
+        Dpo::latest()->take(5)->get()->each(function($item) use ($activities) {
+            $activities->push((object)[
+                'modul' => 'DPO',
+                'judul' => $item->nama_lengkap,
+                'deskripsi' => 'Kasus: ' . Str::limit($item->kasus, 50),
+                'tanggal' => $item->created_at,
+                'status' => $item->status_verifikasi,
+                'url' => route('dpo.index'),
+                'warna' => 'text-rose-400'
+            ]);
+        });
+
+        Ormas::latest()->take(5)->get()->each(function($item) use ($activities) {
+            $activities->push((object)[
+                'modul' => 'ORMAS',
+                'judul' => $item->nama_organisasi,
+                'deskripsi' => 'Pimpinan: ' . $item->nama_pimpinan,
+                'tanggal' => $item->created_at,
+                'status' => $item->status_verifikasi,
+                'url' => route('ormas.index'),
+                'warna' => 'text-indigo-400'
+            ]);
+        });
+
+        Wna::latest()->take(5)->get()->each(function($item) use ($activities) {
+            $activities->push((object)[
+                'modul' => 'WNA',
+                'judul' => $item->nama_lengkap,
+                'deskripsi' => 'Asal: ' . $item->negara_asal,
+                'tanggal' => $item->created_at,
+                'status' => $item->status_verifikasi,
+                'url' => route('wna.index'),
+                'warna' => 'text-amber-400'
+            ]);
+        });
+
+        PamSdo::latest()->take(5)->get()->each(function($item) use ($activities) {
+            $activities->push((object)[
+                'modul' => 'PAM SDO',
+                'judul' => $item->nama_kegiatan,
+                'deskripsi' => 'Lokasi: ' . $item->lokasi,
+                'tanggal' => $item->created_at,
+                'status' => $item->status_verifikasi,
+                'url' => route('pam-sdo.index'),
+                'warna' => 'text-emerald-400'
+            ]);
+        });
+
+        JmsActivity::latest()->take(5)->get()->each(function($item) use ($activities) {
+            $activities->push((object)[
+                'modul' => 'JMS',
+                'judul' => $item->nama_sekolah,
+                'deskripsi' => 'Materi: ' . Str::limit($item->materi, 40),
+                'tanggal' => $item->created_at,
+                'status' => $item->status_verifikasi,
+                'url' => route('jms.index'),
+                'warna' => 'text-purple-400'
+            ]);
+        });
+
+        return $activities->sortByDesc('tanggal')->take(6)->values();
+    }
+
+    // --- FUNGSI BARU: INTEGRATED EARLY WARNING SYSTEM ---
+    public function getEarlyWarnings()
+    {
+        $warnings = collect();
+        $threshold = Carbon::now()->addDays(30)->format('Y-m-d');
+
+        // 1. Lapinhar (Filter berdasarkan tanggal_ditutup)
+        Lapinhar::where('status_verifikasi', 'pending')
+            ->whereNotNull('tanggal_ditutup')
+            ->whereDate('tanggal_ditutup', '<=', $threshold)
+            ->get()->each(function($item) use ($warnings) {
+                $warnings->push((object)[
+                    'modul' => 'LAPINHAR',
+                    'nama' => 'No. Surat: ' . $item->nomor_surat,
+                    'sub_text' => Str::limit($item->peristiwa, 35),
+                    'deadline' => $item->tanggal_ditutup,
+                    'url' => route('lapinhar.index'),
+                    'badge' => 'bg-blue-500/20 text-blue-300 border-blue-500/30'
+                ]);
+            });
+
+        // 2. DPO
+        Dpo::where('status_verifikasi', 'pending')
+            ->whereNotNull('batas_waktu')
+            ->whereDate('batas_waktu', '<=', $threshold)
+            ->get()->each(function($item) use ($warnings) {
+                $warnings->push((object)[
+                    'modul' => 'DPO',
+                    'nama' => $item->nama_lengkap,
+                    'sub_text' => 'Kasus: ' . Str::limit($item->kasus, 35),
+                    'deadline' => $item->batas_waktu,
+                    'url' => route('dpo.index'),
+                    'badge' => 'bg-rose-500/20 text-rose-300 border-rose-500/30'
+                ]);
+            });
+
+        // 3. WNA
+        Wna::where('status_verifikasi', 'pending')
+            ->whereNotNull('masa_berlaku_izin')
+            ->whereDate('masa_berlaku_izin', '<=', $threshold)
+            ->get()->each(function($item) use ($warnings) {
+                $warnings->push((object)[
+                    'modul' => 'WNA',
+                    'nama' => $item->nama_lengkap,
+                    'sub_text' => 'Paspor: ' . $item->nomor_paspor,
+                    'deadline' => $item->masa_berlaku_izin,
+                    'url' => route('wna.index'),
+                    'badge' => 'bg-amber-500/20 text-amber-300 border-amber-500/30'
+                ]);
+            });
+
+        // 4. Ormas
+        Ormas::where('status_verifikasi', 'pending')
+            ->whereNotNull('batas_waktu')
+            ->whereDate('batas_waktu', '<=', $threshold)
+            ->get()->each(function($item) use ($warnings) {
+                $warnings->push((object)[
+                    'modul' => 'ORMAS',
+                    'nama' => $item->nama_organisasi,
+                    'sub_text' => 'SK: ' . $item->nomor_sk,
+                    'deadline' => $item->batas_waktu,
+                    'url' => route('ormas.index'),
+                    'badge' => 'bg-indigo-500/20 text-indigo-300 border-indigo-500/30'
+                ]);
+            });
+
+        // 5. PAM SDO
+        PamSdo::where('status_verifikasi', 'pending')
+            ->whereNotNull('batas_waktu')
+            ->whereDate('batas_waktu', '<=', $threshold)
+            ->get()->each(function($item) use ($warnings) {
+                $warnings->push((object)[
+                    'modul' => 'PAM SDO',
+                    'nama' => $item->nama_kegiatan,
+                    'sub_text' => 'PIC: ' . $item->pelaksana,
+                    'deadline' => $item->batas_waktu,
+                    'url' => route('pam-sdo.index'),
+                    'badge' => 'bg-emerald-500/20 text-emerald-300 border-emerald-500/30'
+                ]);
+            });
+
+        // 6. JMS
+        JmsActivity::where('status_verifikasi', 'pending')
+            ->whereNotNull('batas_waktu')
+            ->whereDate('batas_waktu', '<=', $threshold)
+            ->get()->each(function($item) use ($warnings) {
+                $warnings->push((object)[
+                    'modul' => 'JMS',
+                    'nama' => $item->nama_sekolah,
+                    'sub_text' => 'Materi: ' . Str::limit($item->materi, 35),
+                    'deadline' => $item->batas_waktu,
+                    'url' => route('jms.index'),
+                    'badge' => 'bg-purple-500/20 text-purple-300 border-purple-500/30'
+                ]);
+            });
+
+        // Diurutkan dari deadline terdekat lalu ambil top 5 saja agar seimbang dengan UI
+        return $warnings->sortBy('deadline')->take(5)->values();
     }
 
     public function render()
@@ -115,7 +288,6 @@ class DashboardIndex extends Component
         $totalDpo = Dpo::where('status_pencarian', 'buron')->count();
         $totalOrmas = Ormas::where('status_pengawasan', 'aktif')->count();
         $totalWna = Wna::count();
-        $latestLapinhar = Lapinhar::latest()->take(5)->get();
         $lapinharAktif = Lapinhar::where('status_verifikasi', 'pending')->take(3)->get();
 
         $pending = [
@@ -128,7 +300,6 @@ class DashboardIndex extends Component
         ];
         $totalPending = array_sum($pending);
 
-        // CEK STATUS PERIODE (Buka / Tutup)
         $periode = PeriodePelaporan::first();
         $isPeriodeAktif = false;
 
@@ -142,60 +313,43 @@ class DashboardIndex extends Component
             }
         }
 
-        // --- FITUR BARU 1: EARLY WARNING SYSTEM WNA ---
-        $wnaWarnings = Wna::whereNotNull('masa_berlaku_izin')
-            ->where('masa_berlaku_izin', '<=', Carbon::now()->addDays(30)->format('Y-m-d'))
-            ->orderBy('masa_berlaku_izin', 'asc')
-            ->take(5)
-            ->get();
+        $chartData = [
+            'dpo_buron' => Dpo::where('status_pencarian', 'buron')->count(),
+            'dpo_tertangkap' => Dpo::where('status_pencarian', 'tertangkap')->count(),
+            'ormas_waspada' => Ormas::where('status_pengawasan', 'waspada')->count(),
+            'ormas_dibekukan' => Ormas::where('status_pengawasan', 'dibekukan')->count(), 
+            'lapinhar_pending' => Lapinhar::where('status_verifikasi', 'pending')->count(),
+            'lapinhar_selesai' => Lapinhar::where('status_verifikasi', 'disetujui')->count(),
+            'wna_warning' => Wna::where('masa_berlaku_izin', '<=', Carbon::now()->addDays(30))->count(),
+            'wna_aman' => Wna::where('masa_berlaku_izin', '>', Carbon::now()->addDays(30))->count(),
+            'pam_berjalan' => PamSdo::where('status_verifikasi', 'pending')->count(),
+            'pam_selesai' => PamSdo::where('status_verifikasi', 'disetujui')->count(),
+            'jms_terjadwal' => JmsActivity::where('status_verifikasi', 'pending')->count(),
+            'jms_terlaksana' => JmsActivity::where('status_verifikasi', 'disetujui')->count(),
+        ];
 
-        // --- FITUR BARU 2: DATA GRAFIK ANALITIK KOMPREHENSIF ---
-$chartData = [
-    // 1. DPO
-    'dpo_buron' => Dpo::where('status_pencarian', 'buron')->count(),
-    'dpo_tertangkap' => Dpo::where('status_pencarian', 'tertangkap')->count(),
-
-    // 2. ORMAS
-    'ormas_waspada' => Ormas::where('status_pengawasan', 'waspada')->count(),
-    'ormas_dibekukan' => Ormas::where('status_pengawasan', 'dibekukan')->count(), // Atau 'aman' tergantung status di DB lo
-
-    // 3. LAPINHAR
-    'lapinhar_pending' => Lapinhar::where('status_verifikasi', 'pending')->count(),
-    'lapinhar_selesai' => Lapinhar::where('status_verifikasi', 'disetujui')->count(),
-
-    // 4. WNA (Logic: Warning jika masa berlaku < 30 hari)
-    'wna_warning' => Wna::where('masa_berlaku_izin', '<=', Carbon::now()->addDays(30))->count(),
-    'wna_aman' => Wna::where('masa_berlaku_izin', '>', Carbon::now()->addDays(30))->count(),
-
-    // 5. PAM SDO
-    'pam_berjalan' => PamSdo::where('status_verifikasi', 'pending')->count(),
-    'pam_selesai' => PamSdo::where('status_verifikasi', 'disetujui')->count(),
-
-    // 6. JAKSA MASUK SEKOLAH (JMS)
-    'jms_terjadwal' => JmsActivity::where('status_verifikasi', 'pending')->count(),
-    'jms_terlaksana' => JmsActivity::where('status_verifikasi', 'disetujui')->count(),
-];
-
-        // --- PANGGIL FUNGSI DEADLINE NOTIFIKASI ---
         $notifikasiDeadline = $this->getApproachingDeadlines();
+        $latestActivities = $this->getLatestActivities();
+        
+        // Panggil fungsi gabungan Early Warning System
+        $earlyWarnings = $this->getEarlyWarnings();
 
-        // Pass data ke View Dashboard, DAN pass Notifikasi ke Layout Utama (Header)
         return view('livewire.dashboard.dashboard', [
             'totalLapinhar' => $totalLapinhar,
             'totalDpo' => $totalDpo,
             'totalOrmas' => $totalOrmas,
             'totalWna' => $totalWna,
-            'latestLapinhar' => $latestLapinhar,
+            'latestActivities' => $latestActivities,
             'lapinharAktif' => $lapinharAktif,
             'pending' => $pending,
             'totalPending' => $totalPending,
             'periode' => $periode,
             'isPeriodeAktif' => $isPeriodeAktif,
-            'wnaWarnings' => $wnaWarnings,
+            'earlyWarnings' => $earlyWarnings, // Dioper ke view
             'chartData' => $chartData,
-            'notifikasiDeadline' => $notifikasiDeadline // Data list notifikasi ini yang akan kita looping
+            'notifikasiDeadline' => $notifikasiDeadline 
         ])->layout('layouts.app', [
-            'notifikasiDeadline' => $notifikasiDeadline // Pastikan Layout Header bisa membacanya
+            'notifikasiDeadline' => $notifikasiDeadline 
         ]);
     }
 }

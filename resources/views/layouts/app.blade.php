@@ -74,49 +74,47 @@
                     <div class="hidden sm:flex items-center mr-2">
                         
                         <div x-data="{ openNotif: false }" class="relative border-r border-white/10 pr-4 mr-2">
-                            <button @click="openNotif = !openNotif" class="text-slate-400 hover:text-emerald-400 relative p-2 transition-colors">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
-                                
-                                @if(isset($notifikasiDeadline) && count($notifikasiDeadline) > 0)
-                                    <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border border-[#182a20] animate-ping"></span>
-                                    <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border border-[#182a20]"></span>
-                                @endif
-                            </button>
+    <button @click="openNotif = !openNotif" class="text-slate-400 hover:text-emerald-400 relative p-2 transition-colors">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+        
+        @if(auth()->check() && auth()->user()->unreadNotifications->count() > 0)
+            <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border border-[#182a20] animate-ping"></span>
+            <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-rose-500 rounded-full border border-[#182a20]"></span>
+        @endif
+    </button>
 
-                            <div x-show="openNotif" style="display: none;" @click.away="openNotif = false" 
-                                x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
-                                class="absolute right-0 mt-3 w-80 bg-[#1a2621] border border-white/10 rounded-xl shadow-2xl py-2 z-50">
-                                
-                                <div class="px-4 py-3 border-b border-white/10 flex justify-between items-center">
-                                    <span class="text-white font-bold text-sm">Notifikasi Deadline</span>
-                                    @if(isset($notifikasiDeadline) && count($notifikasiDeadline) > 0)
-                                        <span class="bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">{{ count($notifikasiDeadline) }} Berkas</span>
-                                    @endif
-                                </div>
+    <div x-show="openNotif" style="display: none;" @click.away="openNotif = false" 
+        x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+        class="absolute right-0 mt-3 w-80 bg-[#1a2621] border border-white/10 rounded-xl shadow-2xl py-2 z-50">
+        
+        <div class="px-4 py-3 border-b border-white/10 flex justify-between items-center">
+            <span class="text-white font-bold text-sm">Notifikasi Deadline</span>
+            @if(auth()->check() && auth()->user()->unreadNotifications->count() > 0)
+                <span class="bg-rose-500 text-white text-[10px] font-black px-2 py-0.5 rounded-full">{{ auth()->user()->unreadNotifications->count() }} Berkas</span>
+            @endif
+        </div>
 
-                                <div class="max-h-72 overflow-y-auto custom-scrollbar">
-                                    @if(isset($notifikasiDeadline) && count($notifikasiDeadline) > 0)
-                                        @foreach($notifikasiDeadline as $notif)
-                                            <a href="{{ $notif['url'] }}" class="block px-4 py-3 hover:bg-white/5 border-b border-white/5 last:border-0 transition-colors">
-                                                <div class="flex justify-between items-start mb-1">
-                                                    <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">{{ $notif['modul'] }}</span>
-                                                    <span class="text-[10px] font-bold {{ $notif['sisa_hari'] <= 1 ? 'text-rose-400' : 'text-amber-400' }}">
-                                                        {{ $notif['sisa_hari'] == 0 ? 'Hari ini!' : $notif['sisa_hari'] . ' hari lagi' }}
-                                                    </span>
-                                                </div>
-                                                <p class="text-xs text-slate-200 font-medium truncate">{{ $notif['judul'] }}</p>
-                                                <p class="text-[10px] text-slate-400 mt-1">Batas: {{ \Carbon\Carbon::parse($notif['batas_waktu'])->translatedFormat('d M Y') }}</p>
-                                            </a>
-                                        @endforeach
-                                    @else
-                                        <div class="px-4 py-6 text-center">
-                                            <svg class="w-8 h-8 text-emerald-500/50 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                            <p class="text-sm text-slate-400 italic">Semua berkas aman.<br>Tidak ada deadline mendesak.</p>
-                                        </div>
-                                    @endif
-                                </div>
-                            </div>
+        <div class="max-h-72 overflow-y-auto custom-scrollbar">
+            @if(auth()->check() && auth()->user()->unreadNotifications->count() > 0)
+                @foreach(auth()->user()->unreadNotifications as $notif)
+                    <a href="{{ url($notif->data['url'] ?? '#') }}" class="block px-4 py-3 hover:bg-white/5 border-b border-white/5 last:border-0 transition-colors">
+                        <div class="flex justify-between items-start mb-1">
+                            <span class="text-[10px] font-bold text-emerald-400 uppercase tracking-wider">Sistem Peringatan</span>
+                            <span class="text-[10px] font-bold text-rose-400">Segera Cek!</span>
                         </div>
+                        <p class="text-xs text-slate-200 font-medium truncate">{{ $notif->data['pesan'] }}</p>
+                        <p class="text-[10px] text-slate-400 mt-1">{{ $notif->created_at->diffForHumans() }}</p>
+                    </a>
+                @endforeach
+            @else
+                <div class="px-4 py-6 text-center">
+                    <svg class="w-8 h-8 text-emerald-500/50 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    <p class="text-sm text-slate-400 italic">Semua berkas aman.<br>Tidak ada deadline mendesak.</p>
+                </div>
+            @endif
+        </div>
+    </div>
+</div>
 
                     </div>
 

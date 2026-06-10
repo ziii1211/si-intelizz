@@ -9,6 +9,7 @@ use Livewire\WithFileUploads;
 use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
+use Carbon\Carbon;
 
 #[Layout('layouts.app')]
 class PamSdoIndex extends Component
@@ -19,6 +20,7 @@ class PamSdoIndex extends Component
     public $nama_kegiatan, $kategori_pam, $tanggal_kegiatan;
     public $lokasi, $pelaksana, $keterangan, $status = 'Aman';
     public $status_verifikasi = 'pending';
+    public $batas_waktu; // <--- Tambahan Batas Waktu
 
     // Upload Foto
     public $foto;
@@ -33,13 +35,14 @@ class PamSdoIndex extends Component
     {
         return [
             'nama_kegiatan' => 'required|string|max:255',
-            'kategori_pam' => 'required|string', // Personil/Materiil/Info/Giat
+            'kategori_pam' => 'required|string', 
             'tanggal_kegiatan' => 'required|date',
             'lokasi' => 'required|string',
             'pelaksana' => 'required|string',
             'keterangan' => 'nullable|string',
             'status' => 'required|string',
             'status_verifikasi' => 'required|in:pending,disetujui,ditolak',
+            'batas_waktu' => 'nullable|date', // <--- Aturan Batas Waktu
             'foto' => 'nullable|image|max:2048',
         ];
     }
@@ -67,6 +70,7 @@ class PamSdoIndex extends Component
             'lokasi',
             'pelaksana',
             'keterangan',
+            'batas_waktu', // <--- Reset Batas Waktu
             'foto',
             'old_foto',
             'pam_id'
@@ -92,8 +96,11 @@ class PamSdoIndex extends Component
         $this->keterangan = $data->keterangan;
         $this->status = $data->status;
         $this->status_verifikasi = $data->status_verifikasi;
+        
+        // <--- Ambil data Batas Waktu
+        $this->batas_waktu = $data->batas_waktu ? Carbon::parse($data->batas_waktu)->format('Y-m-d') : null;
 
-        $this->old_foto = $data->foto_dokumentasi; // Sesuai nama kolom di DB
+        $this->old_foto = $data->foto_dokumentasi; 
         $this->foto = null;
 
         $this->is_edit = true;
@@ -112,6 +119,7 @@ class PamSdoIndex extends Component
             'pelaksana' => $this->pelaksana,
             'keterangan' => $this->keterangan,
             'status' => $this->status,
+            'batas_waktu' => $this->batas_waktu, // <--- Simpan Batas Waktu
         ];
 
         // Logic Verifikasi
@@ -128,13 +136,24 @@ class PamSdoIndex extends Component
             if ($this->is_edit && $this->old_foto) {
                 Storage::disk('public')->delete($this->old_foto);
             }
-            // Simpan ke kolom 'foto_dokumentasi' sesuai Model & Migrasi
             $dataToSave['foto_dokumentasi'] = $this->foto->store('fotos-pam', 'public');
         }
 
         if ($this->is_edit) {
             $pam = PamSdo::findOrFail($this->pam_id);
             $pam->update($dataToSave);
+
+            // --- LOGIKA PENGHAPUS NOTIFIKASI OTOMATIS ---
+            if (Auth::user()->role === 'admin' && $this->status_verifikasi !== 'pending') {
+                foreach (Auth::user()->unreadNotifications as $notification) {
+                    // Cari notif yang isinya punya $nama_kegiatan ini
+                    if (isset($notification->data['pesan']) && str_contains($notification->data['pesan'], $this->nama_kegiatan)) {
+                        $notification->markAsRead(); // Hapus dari lonceng
+                    }
+                }
+            }
+            // ---------------------------------------------
+
             session()->flash('message', 'Laporan PAM SDO berhasil diperbarui.');
         } else {
             $dataToSave['user_id'] = Auth::id();

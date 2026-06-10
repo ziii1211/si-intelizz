@@ -149,17 +149,20 @@ class WnaIndex extends Component
             $wna = Wna::findOrFail($this->wna_id);
             $wna->update($dataToSave);
 
-            // Opsional: Log Aktivitas
-            // \App\Models\User::logActivity('UPDATE WNA', 'Memperbarui data WNA: ' . $this->nama_lengkap);
+            // --- LOGIKA PENGHAPUS NOTIFIKASI OTOMATIS ---
+            if (Auth::user()->role === 'admin' && $this->status_verifikasi !== 'pending') {
+                foreach (Auth::user()->unreadNotifications as $notification) {
+                    if (isset($notification->data['pesan']) && str_contains($notification->data['pesan'], $this->nama_lengkap)) {
+                        $notification->markAsRead(); // Hapus dari lonceng
+                    }
+                }
+            }
+            // ---------------------------------------------
 
             session()->flash('message', 'Data WNA berhasil diperbarui.');
         } else {
             $dataToSave['user_id'] = Auth::id();
             Wna::create($dataToSave);
-
-            // Opsional: Log Aktivitas
-            // \App\Models\User::logActivity('CREATE WNA', 'Menambahkan WNA baru: ' . $this->nama_lengkap);
-
             session()->flash('message', 'Data WNA baru berhasil ditambahkan.');
         }
 

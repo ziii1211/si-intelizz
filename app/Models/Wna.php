@@ -12,19 +12,26 @@ class Wna extends Model
         'nama_lengkap',
         'tempat_lahir',
         'tanggal_lahir',
-        'negara_asal',      // Harus ada
+        'negara_asal',
         'nomor_paspor',
         'tujuan_kunjungan',
         'sponsor',
-        'tempat_tinggal',   // Harus ada
+        'tempat_tinggal',
         'masa_berlaku_izin',
         'status_verifikasi',
         'foto'
     ];
 
     protected $casts = [
-        'tanggal_tiba' => 'date',
-        'masa_berlaku_izin_tinggal' => 'date',
+        // Perbaikan format tanggal agar otomatis jadi objek Carbon
+        'tanggal_lahir' => 'date',
+        'masa_berlaku_izin' => 'date', 
+        
+        // Enkripsi data tingkat tinggi
+        'nomor_paspor' => 'encrypted',
+        'tempat_tinggal' => 'encrypted',
+        'tujuan_kunjungan' => 'encrypted',
+        'sponsor' => 'encrypted',
     ];
 
     public function user(): BelongsTo

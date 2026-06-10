@@ -16,11 +16,13 @@ class JmsActivity extends Model
         'narasumber',
         'keterangan',
         'foto_kegiatan',
+        'batas_waktu', // <--- Tambahan Batas Waktu
         'status_verifikasi'
     ];
 
     protected $casts = [
         'tanggal_kegiatan' => 'date',
+        'batas_waktu' => 'date', // <--- Casting Tanggal
     ];
 
     public function user(): BelongsTo

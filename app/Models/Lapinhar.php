@@ -23,6 +23,8 @@ class Lapinhar extends Model
 
     protected $casts = [
         'tanggal_surat' => 'date',
+        'peristiwa' => 'encrypted', // Data otomatis dienkripsi di database
+        'pendapat' => 'encrypted',  // Data otomatis dienkripsi di database
     ];
 
     public function user(): BelongsTo
