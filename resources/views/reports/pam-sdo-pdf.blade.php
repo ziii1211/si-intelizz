@@ -2,57 +2,72 @@
 <html>
 
 <head>
-    <title>Rekapitulasi Giat PAM SDO</title>
+    <title>Rekapitulasi PAM SDO</title>
     <style>
         body {
             font-family: 'Times New Roman', serif;
             font-size: 11pt;
+            line-height: 1.5;
         }
 
+        /* --- CSS KOP SURAT RESMI --- */
         .header {
             text-align: center;
-            border-bottom: 3px double #000;
-            padding-bottom: 10px;
-            margin-bottom: 20px;
+            border-bottom: 3px solid #000;
+            padding-bottom: 12px;
+            margin-bottom: 25px;
             position: relative;
         }
 
         .logo {
             position: absolute;
-            left: 0;
-            top: 0;
-            width: 70px;
+            left: 5px;
+            top: 5px;
+            width: 75px; 
         }
 
         .header h3 {
             margin: 0;
-            font-size: 12pt;
+            font-size: 14pt;
+            font-weight: bold;
             text-transform: uppercase;
+            line-height: 1.3;
         }
 
         .header h2 {
             margin: 0;
-            font-size: 14pt;
+            font-size: 16pt;
             font-weight: bold;
             text-transform: uppercase;
+            line-height: 1.3;
+            letter-spacing: 1px;
         }
+
+        .header p {
+            margin: 4px 0 0 0;
+            font-size: 9pt; 
+            line-height: 1.2;
+            text-align: center; 
+        }
+        /* --------------------------- */
 
         .title-doc {
             text-align: center;
             font-weight: bold;
             text-decoration: underline;
             margin-bottom: 20px;
+            font-size: 13pt;
         }
 
         table {
             width: 100%;
             border-collapse: collapse;
+            margin-top: 10px;
         }
 
-        th,
-        td {
+        th, td {
             border: 1px solid black;
-            padding: 8px;
+            padding: 6px;
             vertical-align: top;
         }
 
@@ -60,6 +75,11 @@
             background-color: #f2f2f2;
             font-weight: bold;
             text-align: center;
+            font-size: 10pt;
+        }
+
+        td {
+            font-size: 10pt;
         }
 
         .ttd {
@@ -75,39 +95,51 @@
     <div class="header">
         <img src="{{ public_path('img/logo-kejaksaan.png') }}" class="logo">
         <h3>KEJAKSAAN REPUBLIK INDONESIA</h3>
+        <h3>KEJAKSAAN TINGGI KALIMANTAN SELATAN</h3>
         <h2>KEJAKSAAN NEGERI BANJARMASIN</h2>
+        <p>
+            JALAN BRIG JEND H. HASAN BASRI NO. 3 RW.002 <br>
+            KELURAHAN PANGERAN KECAMATAN BANJARMASIN UTARA
+        </p>
     </div>
-
     <div class="title-doc">REKAPITULASI PENGAMANAN SUMBER DAYA ORGANISASI (PAM SDO)</div>
 
     <table>
         <thead>
             <tr>
                 <th width="5%">NO</th>
-                <th width="15%">TANGGAL</th>
-                <th width="25%">NAMA KEGIATAN / LOKASI</th>
-                <th width="20%">KATEGORI / PELAKSANA</th>
-                <th>KETERANGAN / HASIL</th>
-                <th width="10%">STATUS</th>
+                <th width="25%">NAMA KEGIATAN & TANGGAL</th>
+                <th width="20%">KATEGORI & PIC</th>
+                <th width="20%">LOKASI</th>
+                <th width="15%">STATUS SITUASI</th>
+                <th width="15%">VERIFIKASI</th>
             </tr>
         </thead>
         <tbody>
-            @foreach($data as $index => $item)
+            @forelse($data as $index => $item)
             <tr>
                 <td align="center">{{ $index + 1 }}</td>
-                <td align="center">{{ \Carbon\Carbon::parse($item->tanggal_kegiatan)->format('d-m-Y') }}</td>
                 <td>
-                    <strong>{{ $item->nama_kegiatan }}</strong><br>
-                    <small>Lokasi: {{ $item->lokasi }}</small>
+                    <strong>{{ strtoupper($item->nama_kegiatan) }}</strong><br>
+                    <small>{{ \Carbon\Carbon::parse($item->tanggal_kegiatan)->format('d-m-Y') }}</small>
                 </td>
                 <td>
                     {{ $item->kategori_pam }}<br>
-                    <small>Oleh: {{ $item->pelaksana }}</small>
+                    <small>PIC: {{ $item->pelaksana }}</small>
                 </td>
-                <td>{{ $item->keterangan ?? '-' }}</td>
-                <td align="center"><strong>{{ strtoupper($item->status) }}</strong></td>
+                <td>{{ $item->lokasi }}</td>
+                <td align="center">
+                    <strong style="color: {{ $item->status == 'Aman' ? 'green' : 'red' }}">
+                        {{ strtoupper($item->status) }}
+                    </strong>
+                </td>
+                <td align="center">{{ strtoupper($item->status_verifikasi) }}</td>
             </tr>
-            @endforeach
+            @empty
+            <tr>
+                <td colspan="6" align="center">Data PAM SDO Kosong</td>
+            </tr>
+            @endforelse
         </tbody>
     </table>
 

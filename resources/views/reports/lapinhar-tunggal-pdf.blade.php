@@ -22,31 +22,42 @@
         /* Header / Kop Surat */
         .header {
             text-align: center;
-            border-bottom: 2px solid #000;
-            padding-bottom: 10px;
+            border-bottom: 3px solid #000;
+            padding-bottom: 12px;
             margin-bottom: 25px;
             position: relative;
         }
 
         .logo {
             position: absolute;
-            left: 0;
-            top: -5px;
-            width: 75px;
+            left: 5px;
+            top: 5px;
+            width: 75px; 
         }
 
         .header h3 {
             margin: 0;
-            font-size: 12pt;
-            font-weight: normal;
+            font-size: 14pt;
+            font-weight: bold;
             text-transform: uppercase;
+            line-height: 1.3;
         }
 
         .header h2 {
             margin: 0;
-            font-size: 14pt;
+            font-size: 16pt;
             font-weight: bold;
             text-transform: uppercase;
+            line-height: 1.3;
+            letter-spacing: 1px; /* Memberi sedikit jarak antar huruf biar lebih tegas */
+        }
+
+        /* Teks Alamat di Kop Surat */
+        .header p {
+            margin: 4px 0 0 0;
+            font-size: 9pt; /* Ukuran diperkecil agar pas dan rapi */
+            line-height: 1.2;
+            text-align: center; /* Rata tengah */
         }
 
         /* Box Informasi Nomor & Perihal */
@@ -67,9 +78,10 @@
         /* Judul Dokumen */
         .title-doc {
             text-align: center;
+            font-size: 13pt;
             font-weight: bold;
             text-decoration: underline;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             text-transform: uppercase;
         }
 
@@ -94,7 +106,6 @@
         .ttd-wrapper {
             margin-top: 40px;
             width: 100%;
-            /* Membersihkan float dari konten sebelumnya */
             clear: both;
         }
 
@@ -106,15 +117,15 @@
 
         .ttd-box p {
             margin: 0;
+            line-height: 1.4;
         }
 
         .space-ttd {
             height: 80px;
         }
 
-        /* Perubahan: Menghapus footer-line dan mengatur NIP */
         .nip-text {
-            margin-top: 5px;
+            margin-top: 2px;
             font-size: 11pt;
         }
 
@@ -131,6 +142,10 @@
         <h3>KEJAKSAAN REPUBLIK INDONESIA</h3>
         <h3>KEJAKSAAN TINGGI KALIMANTAN SELATAN</h3>
         <h2>KEJAKSAAN NEGERI BANJARMASIN</h2>
+        <p>
+            JALAN BRIG JEND H. HASAN BASRI NO. 3 RW.002 <br>
+            KELURAHAN PANGERAN KECAMATAN BANJARMASIN UTARA
+        </p>
     </div>
 
     <div class="ref-box">

@@ -10,25 +10,28 @@
             line-height: 1.5;
         }
 
+        /* --- PERBAIKAN CSS KOP SURAT --- */
         .header {
             text-align: center;
-            margin-bottom: 20px;
-            border-bottom: 3px double #000;
-            padding-bottom: 10px;
+            border-bottom: 3px solid #000;
+            padding-bottom: 12px;
+            margin-bottom: 25px;
             position: relative;
         }
 
         .logo {
             position: absolute;
-            left: 0;
-            top: 0;
-            width: 80px;
+            left: 5px;
+            top: 5px;
+            width: 75px; 
         }
 
         .header h3 {
             margin: 0;
             font-size: 14pt;
+            font-weight: bold;
             text-transform: uppercase;
+            line-height: 1.3;
         }
 
         .header h2 {
@@ -36,12 +39,17 @@
             font-size: 16pt;
             font-weight: bold;
             text-transform: uppercase;
+            line-height: 1.3;
+            letter-spacing: 1px;
         }
 
         .header p {
-            margin: 0;
-            font-size: 10pt;
+            margin: 4px 0 0 0;
+            font-size: 9pt; 
+            line-height: 1.2;
+            text-align: center; 
         }
+        /* ------------------------------- */
 
         .content-title {
             text-align: center;
@@ -83,6 +91,7 @@
             width: 40%;
             text-align: center;
             float: right;
+            margin-top: 40px; /* Tambahan margin atas biar nggak nempel tabel */
         }
     </style>
 </head>
@@ -93,9 +102,11 @@
         <h3>KEJAKSAAN REPUBLIK INDONESIA</h3>
         <h3>KEJAKSAAN TINGGI KALIMANTAN SELATAN</h3>
         <h2>KEJAKSAAN NEGERI BANJARMASIN</h2>
-        <p>Jl. Brig Jend. H. Hasan Basri No.3, Kayu Tangi, Banjarmasin</p>
+        <p>
+            JALAN BRIG JEND H. HASAN BASRI NO. 3 RW.002 <br>
+            KELURAHAN PANGERAN KECAMATAN BANJARMASIN UTARA
+        </p>
     </div>
-
     <div class="content-title">REKAPITULASI LAPORAN INFORMASI HARIAN</div>
 
     <table>

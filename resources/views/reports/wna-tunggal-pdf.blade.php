@@ -10,20 +10,46 @@
             line-height: 1.6;
         }
 
+        /* --- CSS KOP SURAT RESMI --- */
         .header {
             text-align: center;
-            border-bottom: 3px double #000;
-            padding-bottom: 10px;
+            border-bottom: 3px solid #000;
+            padding-bottom: 12px;
             margin-bottom: 30px;
             position: relative;
         }
 
         .logo {
             position: absolute;
-            left: 0;
-            top: 0;
-            width: 70px;
+            left: 5px;
+            top: 5px;
+            width: 75px; 
         }
+
+        .header h3 {
+            margin: 0;
+            font-size: 14pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            line-height: 1.3;
+        }
+
+        .header h2 {
+            margin: 0;
+            font-size: 16pt;
+            font-weight: bold;
+            text-transform: uppercase;
+            line-height: 1.3;
+            letter-spacing: 1px;
+        }
+
+        .header p {
+            margin: 4px 0 0 0;
+            font-size: 9pt; 
+            line-height: 1.2;
+            text-align: center; 
+        }
+        /* --------------------------- */
 
         .title-doc {
             text-align: center;
@@ -75,9 +101,13 @@
     <div class="header">
         <img src="{{ public_path('img/logo-kejaksaan.png') }}" class="logo">
         <h3>KEJAKSAAN REPUBLIK INDONESIA</h3>
+        <h3>KEJAKSAAN TINGGI KALIMANTAN SELATAN</h3>
         <h2>KEJAKSAAN NEGERI BANJARMASIN</h2>
+        <p>
+            JALAN BRIG JEND H. HASAN BASRI NO. 3 RW.002 <br>
+            KELURAHAN PANGERAN KECAMATAN BANJARMASIN UTARA
+        </p>
     </div>
-
     <div class="title-doc">LEMBAR PENGAWASAN ORANG ASING</div>
 
     <div style="width: 100%;">

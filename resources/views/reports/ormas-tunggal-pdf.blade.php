@@ -4,47 +4,58 @@
 <head>
     <title>Profil Ormas - {{ $item->nama_organisasi }}</title>
     <style>
+        /* --- SAMAKAN MARGIN KERTAS DENGAN LAPINHAR --- */
+        @page {
+            margin: 1.5cm;
+        }
+
         body {
             font-family: 'Times New Roman', serif;
             font-size: 12pt;
             line-height: 1.4;
-            margin: 1cm 2cm;
+            color: #333;
         }
 
-        /* HEADER STYLE */
+        /* --- CSS KOP SURAT RESMI --- */
         .header {
             text-align: center;
-            border-bottom: 3px double #000;
-            padding-bottom: 10px;
+            border-bottom: 3px solid #000;
+            padding-bottom: 12px;
             margin-bottom: 25px;
             position: relative;
         }
 
-        .logo-instansi {
+        .logo {
             position: absolute;
-            left: 0;
-            top: 0;
-            width: 75px;
-            height: auto;
+            left: 5px;
+            top: 5px;
+            width: 75px; 
         }
 
         .header h3 {
             margin: 0;
             font-size: 14pt;
+            font-weight: bold;
             text-transform: uppercase;
+            line-height: 1.3;
         }
 
         .header h2 {
-            margin: 5px 0 0 0;
+            margin: 0;
             font-size: 16pt;
+            font-weight: bold;
             text-transform: uppercase;
+            line-height: 1.3;
+            letter-spacing: 1px;
         }
 
         .header p {
-            margin: 0;
-            font-size: 10pt;
-            font-style: italic;
+            margin: 4px 0 0 0;
+            font-size: 9pt; 
+            line-height: 1.2;
+            text-align: center; 
         }
+        /* --------------------------- */
 
         /* TITLE STYLE */
         .title-doc {
@@ -142,12 +153,15 @@
 <body>
 
     <div class="header">
-        <img src="{{ public_path('img/logo-kejaksaan.png') }}" class="logo-instansi">
+        <img src="{{ public_path('img/logo-kejaksaan.png') }}" class="logo">
         <h3>KEJAKSAAN REPUBLIK INDONESIA</h3>
+        <h3>KEJAKSAAN TINGGI KALIMANTAN SELATAN</h3>
         <h2>KEJAKSAAN NEGERI BANJARMASIN</h2>
-        <p>Jl. Brigjend H. Hasan Basry No. 3, Banjarmasin, Kalimantan Selatan</p>
+        <p>
+            JALAN BRIG JEND H. HASAN BASRI NO. 3 RW.002 <br>
+            KELURAHAN PANGERAN KECAMATAN BANJARMASIN UTARA
+        </p>
     </div>
-
     <div class="title-doc">LEMBAR PROFIL ORGANISASI KEMASYARAKATAN</div>
 
     <table class="layout-table">
